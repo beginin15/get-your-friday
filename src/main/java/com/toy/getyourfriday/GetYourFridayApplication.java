@@ -1,13 +1,15 @@
 package com.toy.getyourfriday;
 
-import org.springframework.boot.SpringApplication;
+import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 
 @SpringBootApplication
 public class GetYourFridayApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(GetYourFridayApplication.class, args);
+        new SpringApplicationBuilder(GetYourFridayApplication.class)
+                .web(WebApplicationType.NONE)
+                .run(args);
     }
-
 }
