@@ -1,16 +1,18 @@
 package com.toy.getyourfriday.selenium;
 
 import org.junit.jupiter.api.*;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class WebDriverTest {
 
@@ -59,5 +61,20 @@ public class WebDriverTest {
 
         // then
         assertTrue(resultOfheadless < resultOfheadMode);
+    }
+
+    @Test
+    @DisplayName("프라이탁 웹페이지 스크랩핑 테스트")
+    public void scrapingFreitag(){
+        // given
+        String url = "https://www.freitag.ch/en/f41?items=showall";
+        driver = new RemoteWebDriver(driverService.getUrl(), new ChromeOptions().setHeadless(true));
+
+        // when
+        driver.get(url);
+        List<WebElement> elements = driver.findElements(By.cssSelector("ul.products-list > li > a"));
+
+        // then
+        assertNotEquals(0, elements.size());
     }
 }
