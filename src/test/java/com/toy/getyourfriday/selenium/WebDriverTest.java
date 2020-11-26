@@ -41,7 +41,7 @@ public class WebDriverTest {
     @Test
     @DisplayName("드라이버 생성 테스트")
     public void create() {
-        driver = new RemoteWebDriver(driverService.getUrl(), new ChromeOptions());
+        driver = createDriverByHeadless(false);
         assertNotNull(driver);
     }
 
@@ -50,16 +50,17 @@ public class WebDriverTest {
     public void headlessMode() {
         // when - UI 있는 경우
         long headMode = System.currentTimeMillis();
-        driver = new RemoteWebDriver(driverService.getUrl(), new ChromeOptions());
+        driver = createDriverByHeadless(false);
         long resultOfheadMode = System.currentTimeMillis() - headMode;
         driver.quit();
 
         // when - UI 없는 경우
         long headlessMode = System.currentTimeMillis();
-        driver = new RemoteWebDriver(driverService.getUrl(), new ChromeOptions().setHeadless(true));
+        driver = createDriverByHeadless(true);
         long resultOfheadless = System.currentTimeMillis() - headlessMode;
 
         // then
+        System.out.println("before: " + resultOfheadMode + ", after: " + resultOfheadless);
         assertTrue(resultOfheadless < resultOfheadMode);
     }
 
@@ -68,13 +69,18 @@ public class WebDriverTest {
     public void scrapingFreitag(){
         // given
         String url = "https://www.freitag.ch/en/f41?items=showall";
-        driver = new RemoteWebDriver(driverService.getUrl(), new ChromeOptions().setHeadless(true));
+        driver = createDriverByHeadless(true);
 
         // when
         driver.get(url);
         List<WebElement> elements = driver.findElements(By.cssSelector("ul.products-list > li > a"));
 
         // then
+        System.out.println(elements.size());
         assertNotEquals(0, elements.size());
+    }
+
+    private WebDriver createDriverByHeadless(boolean headless) {
+        return new RemoteWebDriver(driverService.getUrl(), new ChromeOptions().setHeadless(headless));
     }
 }
