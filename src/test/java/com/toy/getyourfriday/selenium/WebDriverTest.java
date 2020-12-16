@@ -43,14 +43,14 @@ public class WebDriverTest {
 
     @Test
     @DisplayName("드라이버 생성 테스트")
-    public void create() {
+    void create() {
         driver = createDriverByOptions(null, false);
         assertNotNull(driver);
     }
 
     @Test
     @DisplayName("UI 유무에 따른 성능 차이 테스트")
-    public void headlessMode() {
+    void headlessMode() {
         // when - UI 있는 경우
         long headMode = System.currentTimeMillis();
         driver = createDriverByOptions(null, false);
@@ -69,7 +69,7 @@ public class WebDriverTest {
 
     @Test
     @DisplayName("프라이탁 웹페이지 스크랩핑 테스트")
-    public void scrapingFreitag(){
+    void scrapingFreitag(){
         // given
         String url = "https://www.freitag.ch/en/f41?items=showall";
         driver = createDriverByOptions(null, true);
