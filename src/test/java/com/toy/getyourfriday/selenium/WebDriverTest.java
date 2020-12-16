@@ -2,6 +2,7 @@ package com.toy.getyourfriday.selenium;
 
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Proxy;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriverService;
@@ -35,13 +36,15 @@ public class WebDriverTest {
 
     @AfterEach
     public void quitDriver() {
-        driver.quit();
+        if (driver != null) {
+            driver.quit();
+        }
     }
 
     @Test
     @DisplayName("드라이버 생성 테스트")
     public void create() {
-        driver = createDriverByHeadless(false);
+        driver = createDriverByOptions(null, false);
         assertNotNull(driver);
     }
 
@@ -50,13 +53,13 @@ public class WebDriverTest {
     public void headlessMode() {
         // when - UI 있는 경우
         long headMode = System.currentTimeMillis();
-        driver = createDriverByHeadless(false);
+        driver = createDriverByOptions(null, false);
         long resultOfheadMode = System.currentTimeMillis() - headMode;
         driver.quit();
 
         // when - UI 없는 경우
         long headlessMode = System.currentTimeMillis();
-        driver = createDriverByHeadless(true);
+        driver = createDriverByOptions(null, true);
         long resultOfheadless = System.currentTimeMillis() - headlessMode;
 
         // then
@@ -69,7 +72,7 @@ public class WebDriverTest {
     public void scrapingFreitag(){
         // given
         String url = "https://www.freitag.ch/en/f41?items=showall";
-        driver = createDriverByHeadless(true);
+        driver = createDriverByOptions(null, true);
 
         // when
         driver.get(url);
@@ -80,7 +83,34 @@ public class WebDriverTest {
         assertNotEquals(0, elements.size());
     }
 
-    private WebDriver createDriverByHeadless(boolean headless) {
-        return new RemoteWebDriver(driverService.getUrl(), new ChromeOptions().setHeadless(headless));
+    @Test
+    @DisplayName("tor를 이용한 ip 주소 우회 확인하기")
+    void bypassIpAddress () throws InterruptedException {
+        // given
+        Proxy proxy = new Proxy();
+        proxy.setSslProxy("socks5://127.0.0.1:9050"); // tor 포트
+
+        // when
+        WebDriver driver1 = createDriverByOptions(proxy, true);
+        driver1.get("https://ip.pe.kr/");
+        String ipAddress1 = driver1.findElement(By.className("cover-heading")).getText();
+
+        Thread.sleep(10000); // ip 변경 주기
+
+        WebDriver driver2 = createDriverByOptions(proxy, true);
+        driver2.get("https://ip.pe.kr/");
+        String ipAddress2 = driver2.findElement(By.className("cover-heading")).getText();
+
+        // then
+        assertNotEquals(ipAddress1, ipAddress2);
+    }
+
+    private WebDriver createDriverByOptions(Proxy proxy, boolean headless) {
+        ChromeOptions options = new ChromeOptions();
+        if (proxy != null) {
+            options.setCapability("proxy", proxy);
+        }
+        options.setHeadless(headless);
+        return new RemoteWebDriver(driverService.getUrl(), options);
     }
 }
