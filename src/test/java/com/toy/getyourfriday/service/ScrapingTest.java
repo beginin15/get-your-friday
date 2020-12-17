@@ -1,36 +1,40 @@
 package com.toy.getyourfriday.service;
 
 import com.toy.getyourfriday.config.ApplicationConfig;
-import com.toy.getyourfriday.domain.Products;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.util.concurrent.TimeUnit;
 
 @SpringJUnitConfig(ApplicationConfig.class)
 class ScrapingTest {
 
+    public static final String TEST_URL = "https://www.freitag.ch/en/f11?items=showall";
+
     @Autowired
-    private ChromeOptions chromeOptions;
+    private TaskScheduler taskScheduler;
+
+    @MockBean
+    private ProductContainer updateHandler;
 
     @Test
-    void scraping() {
-        // given
-        WebDriver driver = new ChromeDriver(chromeOptions);
-        String url = "https://www.freitag.ch/en/f11?items=showall";
-        Scraping scraping = new Scraping(driver, url);
+    @DisplayName("스케줄링에 의한 스크래핑 테스트")
+    void scrapingByScheduler() throws InterruptedException {
+        WebDriver driver = new ChromeDriver();
+        Scraping scraping = new Scraping(driver, TEST_URL, updateHandler);
 
-        // when
-        Products products = scraping.scraping();
+        PeriodicTrigger trigger = new PeriodicTrigger(10, TimeUnit.SECONDS);
+        trigger.setInitialDelay(10);
+        taskScheduler.schedule(scraping, trigger);
 
-        // then
-        assertNotNull(products);
-        assertNotEquals(0, products.getProducts().size());
+        Thread.sleep(35000);
 
         driver.close();
     }
