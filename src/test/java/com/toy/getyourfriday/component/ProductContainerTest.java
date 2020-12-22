@@ -1,4 +1,4 @@
-package com.toy.getyourfriday.service;
+package com.toy.getyourfriday.component;
 
 import com.google.common.collect.ImmutableList;
 import com.toy.getyourfriday.domain.Product;

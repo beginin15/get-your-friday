@@ -1,7 +1,6 @@
-package com.toy.getyourfriday.service;
+package com.toy.getyourfriday.domain;
 
-import com.toy.getyourfriday.domain.Product;
-import com.toy.getyourfriday.domain.Products;
+import com.toy.getyourfriday.component.ProductContainer;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 

@@ -1,5 +1,6 @@
-package com.toy.getyourfriday.service;
+package com.toy.getyourfriday.domain;
 
+import com.toy.getyourfriday.component.ProductContainer;
 import com.toy.getyourfriday.config.ApplicationConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

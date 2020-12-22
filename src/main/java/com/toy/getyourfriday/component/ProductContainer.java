@@ -1,4 +1,4 @@
-package com.toy.getyourfriday.service;
+package com.toy.getyourfriday.component;
 
 import com.toy.getyourfriday.domain.Products;
 import org.springframework.stereotype.Component;
