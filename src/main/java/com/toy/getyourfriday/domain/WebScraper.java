@@ -31,4 +31,8 @@ public class WebScraper implements Runnable {
                 .collect(collectingAndThen(toList(), Products::new));
         productContainer.checkUpdate(modelUrl, products);
     }
+
+    public void quitDriver() {
+        driver.quit();
+    }
 }
