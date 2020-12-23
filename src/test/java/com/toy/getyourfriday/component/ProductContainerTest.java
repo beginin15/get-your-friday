@@ -1,11 +1,13 @@
 package com.toy.getyourfriday.component;
 
 import com.google.common.collect.ImmutableList;
+import com.toy.getyourfriday.domain.ModelUrl;
 import com.toy.getyourfriday.domain.Product;
 import com.toy.getyourfriday.domain.Products;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,19 +15,21 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
+@SpringBootTest(classes = ModelUrlParser.class)
 class ProductContainerTest {
 
-    private String productUrl;
-    private Products products;
+    private static final String MODEL_NAME = "lassie";
+    private static final Products products;
 
-    @BeforeEach
-    void setUp() {
-        productUrl = "https://www.freitag.ch/en/f11?items=showall";
+    static {
         products = new Products(ImmutableList.of(
                 new Product("https://www.freitag.ch/ko/f11?productID=1143300"),
                 new Product("https://www.freitag.ch/ko/f11?productID=1135801"))
         );
     }
+
+    @Autowired
+    private ModelUrlParser modelUrlParser;
 
     @Test
     @DisplayName("최초 업데이트인 경우")
@@ -34,7 +38,7 @@ class ProductContainerTest {
         ProductContainer actual = new ProductContainer();
 
         // when
-        actual.checkUpdate(productUrl, products);
+        actual.checkUpdate(modelUrlParser.findByName(MODEL_NAME), products);
 
         // then
         ProductContainer unexpected = new ProductContainer();
@@ -48,11 +52,11 @@ class ProductContainerTest {
         ProductContainer actual = new ProductContainer();
 
         // when
-        actual.checkUpdate(productUrl, products);
+        actual.checkUpdate(modelUrlParser.findByName(MODEL_NAME), products);
 
         // then
-        Map<String, Products> map = new HashMap<>();
-        map.put(productUrl, products);
+        Map<ModelUrl, Products> map = new HashMap<>();
+        map.put(modelUrlParser.findByName(MODEL_NAME), products);
         ProductContainer expected = ProductContainer.of(map);
 
         assertEquals(expected, actual);
@@ -62,8 +66,8 @@ class ProductContainerTest {
     @DisplayName("업데이트된 경우")
     void checkUpdate() {
         // given
-        Map<String, Products> map = new HashMap<>();
-        map.put(productUrl, products);
+        Map<ModelUrl, Products> map = new HashMap<>();
+        map.put(modelUrlParser.findByName(MODEL_NAME), products);
         ProductContainer actual = ProductContainer.of(map);
 
         // when
@@ -72,7 +76,7 @@ class ProductContainerTest {
                 new Product("https://www.freitag.ch/ko/f11?productID=1135801"),
                 new Product("https://www.freitag.ch/ko/f11?productID=1135753"))
         );
-        actual.checkUpdate(productUrl, updatedProducts);
+        actual.checkUpdate(modelUrlParser.findByName(MODEL_NAME), updatedProducts);
 
         // then
         ProductContainer unexpected = ProductContainer.of(map);

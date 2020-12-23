@@ -1,35 +1,37 @@
 package com.toy.getyourfriday.component;
 
+import com.toy.getyourfriday.domain.ModelUrl;
 import com.toy.getyourfriday.domain.Products;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class ProductContainer {
 
-    private Map<String, Products> productsMap = new HashMap<>();
+    private Map<ModelUrl, Products> productsMap = new ConcurrentHashMap<>();
 
-    public static ProductContainer of(Map<String, Products> productsMap) {
+    public static ProductContainer of(Map<ModelUrl, Products> productsMap) {
         ProductContainer productContainer = new ProductContainer();
         productContainer.productsMap = new HashMap<>(productsMap);
         return productContainer;
     }
 
-    public void checkUpdate(String productUrl, Products products) {
-        if (productsMap.containsKey(productUrl)) {
-            updateIfChanged(productUrl, products);
+    public void checkUpdate(ModelUrl modelUrl, Products products) {
+        if (productsMap.containsKey(modelUrl)) {
+            updateIfChanged(modelUrl, products);
             return;
         }
-        productsMap.put(productUrl, products);
+        productsMap.put(modelUrl, products);
     }
 
-    private void updateIfChanged(String productUrl, Products latest) {
-        if (!productsMap.get(productUrl).equals(latest)) {
+    private void updateIfChanged(ModelUrl modelUrl, Products latest) {
+        if (!productsMap.get(modelUrl).equals(latest)) {
             // UpdateService 호출
-            productsMap.replace(productUrl, latest);
+            productsMap.replace(modelUrl, latest);
         }
     }
 
