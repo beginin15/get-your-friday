@@ -2,7 +2,7 @@ package com.toy.getyourfriday.service;
 
 import com.toy.getyourfriday.component.ProductContainer;
 import com.toy.getyourfriday.domain.ModelUrl;
-import org.openqa.selenium.chrome.ChromeDriver;
+import com.toy.getyourfriday.domain.WebScraper;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -13,9 +13,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
-import static com.toy.getyourfriday.service.ScrapingTask.ScraperWrapper;
 
 @Service
 public class ScrapingManager {
@@ -56,8 +55,9 @@ public class ScrapingManager {
     }
 
     private ScrapingTask makeSchedule(ModelUrl modelUrl) {
-        ScraperWrapper wrapper = ScraperWrapper.of(new ChromeDriver(chromeOptions), modelUrl, productContainer);
-        return new ScrapingTask(taskScheduler.schedule(wrapper, trigger), wrapper);
+        WebScraper scraper = WebScraper.of(chromeOptions, modelUrl, productContainer);
+        ScheduledFuture<?> scheduledTask = taskScheduler.schedule(scraper, trigger);
+        return new ScrapingTask(scheduledTask, scraper);
     }
 
     private void checkDuplication(Optional<ScrapingTask> optional,
@@ -94,6 +94,22 @@ public class ScrapingManager {
     @Override
     public int hashCode() {
         return Objects.hash(scheduledTasks);
+    }
+
+    static public class ScrapingTask {
+
+        private final ScheduledFuture<?> task;
+        private final WebScraper scraper;
+
+        public ScrapingTask(ScheduledFuture<?> task, WebScraper scraper) {
+            this.task = task;
+            this.scraper = scraper;
+        }
+
+        public void cancel(boolean mayInterruptIfRunning) {
+            task.cancel(mayInterruptIfRunning);
+            scraper.quitDriver();
+        }
     }
 
     private static class DuplicateKeyException extends RuntimeException {}
