@@ -43,7 +43,6 @@ class WebScraperTest {
 
         Thread.sleep(100000);
 
-
         driver.quit();
     }
 }
