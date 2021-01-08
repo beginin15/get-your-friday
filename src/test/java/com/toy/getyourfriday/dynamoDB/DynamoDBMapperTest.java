@@ -2,8 +2,6 @@ package com.toy.getyourfriday.dynamoDB;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-import com.amazonaws.services.dynamodbv2.model.DeleteTableRequest;
 import com.amazonaws.services.dynamodbv2.util.TableUtils;
 import com.toy.getyourfriday.component.ModelUrlParser;
 import com.toy.getyourfriday.config.DynamoDBConfig;
@@ -11,7 +9,6 @@ import com.toy.getyourfriday.domain.User;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 
 import static com.toy.getyourfriday.dynamoDB.AwsDynamoDBSdkTest.TABLE_NAME;
 import static com.toy.getyourfriday.dynamoDB.AwsDynamoDBSdkTest.createUserTableRequest;
@@ -22,14 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
         ModelUrlParser.class,
         DynamoDBConfig.class
 })
-@Import(DynamoDBTestConfig.class)
 public class DynamoDBMapperTest {
 
     @Autowired
     private AmazonDynamoDB amazonDynamoDB;
-
-    @Autowired
-    private DynamoDB dynamoDB;
 
     @Autowired
     private DynamoDBMapper dynamoDBMapper;
@@ -37,11 +30,9 @@ public class DynamoDBMapperTest {
     @Autowired
     private ModelUrlParser modelUrlParser;
 
-
     @BeforeAll
     void createTable() {
-        TableUtils.deleteTableIfExists(amazonDynamoDB, new DeleteTableRequest().withTableName(TABLE_NAME));
-        dynamoDB.createTable(createUserTableRequest(
+        TableUtils.createTableIfNotExists(amazonDynamoDB, createUserTableRequest(
                 TABLE_NAME,
                 "chatId",
                 "monitoredUrl")
@@ -109,7 +100,6 @@ public class DynamoDBMapperTest {
     @AfterAll
     void tearDown() {
         amazonDynamoDB.deleteTable(TABLE_NAME);
-        amazonDynamoDB.shutdown();
     }
 }
 

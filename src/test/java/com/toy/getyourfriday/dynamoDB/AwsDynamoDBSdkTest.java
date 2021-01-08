@@ -5,11 +5,11 @@ import com.amazonaws.services.dynamodbv2.document.*;
 import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
 import com.amazonaws.services.dynamodbv2.model.*;
 import com.toy.getyourfriday.component.ModelUrlParser;
+import com.toy.getyourfriday.config.DynamoDBConfig;
 import com.toy.getyourfriday.domain.ModelUrl;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,35 +17,33 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@SpringBootTest(classes = ModelUrlParser.class)
-@Import(DynamoDBTestConfig.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@SpringBootTest(classes = {
+        ModelUrlParser.class,
+        DynamoDBConfig.class
+})
 public class AwsDynamoDBSdkTest {
 
     public static final String TABLE_NAME = "User";
     private static final String PK_ATTRIBUTE = "chatId";
     private static final String SECONDARY_INDEX_ATTRIBUTE = "monitoredUrl";
 
-    private static AmazonDynamoDB amazonDynamoDB;
-
     @Autowired
-    private ModelUrlParser modelUrlParser;
+    private AmazonDynamoDB amazonDynamoDB;
 
     @Autowired
     private DynamoDB dynamoDB;
 
+    @Autowired
+    private ModelUrlParser modelUrlParser;
+
     private Integer chat_id;
     private ModelUrl modelUrl;
 
-    // using constructor-autowired to inject bean to static field
-    @Autowired
-    public AwsDynamoDBSdkTest(AmazonDynamoDB amazonDynamoDB) {
-        AwsDynamoDBSdkTest.amazonDynamoDB = amazonDynamoDB;
-    }
-
-    @BeforeEach
-    public void setUp() {
-        chat_id = 1234;
-        modelUrl = modelUrlParser.findByName("lassie");
+    @BeforeAll
+    void setUp() {
+        this.chat_id = 1234;
+        this.modelUrl = modelUrlParser.findByName("lassie");
     }
 
     @Test
@@ -183,8 +181,7 @@ public class AwsDynamoDBSdkTest {
     }
 
     @AfterAll
-    static void tearDown() {
+    void tearDown() {
         amazonDynamoDB.deleteTable(TABLE_NAME);
-        amazonDynamoDB.shutdown();
     }
 }
