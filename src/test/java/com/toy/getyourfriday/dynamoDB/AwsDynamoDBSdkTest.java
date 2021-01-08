@@ -1,11 +1,6 @@
 package com.toy.getyourfriday.dynamoDB;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.*;
 import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
 import com.amazonaws.services.dynamodbv2.model.*;
@@ -14,44 +9,41 @@ import com.toy.getyourfriday.domain.ModelUrl;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SpringBootTest(classes = ModelUrlParser.class)
+@Import(DynamoDBTestConfig.class)
 public class AwsDynamoDBSdkTest {
 
-    private static final String TABLE_NAME = "User";
+    public static final String TABLE_NAME = "User";
     private static final String PK_ATTRIBUTE = "chatId";
     private static final String SECONDARY_INDEX_ATTRIBUTE = "monitoredUrl";
+
+    private static AmazonDynamoDB amazonDynamoDB;
 
     @Autowired
     private ModelUrlParser modelUrlParser;
 
-    private static AmazonDynamoDB amazonDynamoDB;
+    @Autowired
     private DynamoDB dynamoDB;
 
     private Integer chat_id;
     private ModelUrl modelUrl;
 
+    // using constructor-autowired to inject bean to static field
+    @Autowired
+    public AwsDynamoDBSdkTest(AmazonDynamoDB amazonDynamoDB) {
+        AwsDynamoDBSdkTest.amazonDynamoDB = amazonDynamoDB;
+    }
+
     @BeforeEach
     public void setUp() {
-        // setting dynamoDB
-        AWSCredentials awsCredentials = new BasicAWSCredentials("key1", "key2");
-        AWSCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(awsCredentials);
-        EndpointConfiguration endpointConfiguration = new EndpointConfiguration(
-                "http://localhost:8000", "ap-northeast-2"
-        );
-        amazonDynamoDB = AmazonDynamoDBClientBuilder.standard()
-                .withCredentials(credentialsProvider)
-                .withEndpointConfiguration(endpointConfiguration)
-                .build();
-        dynamoDB = new DynamoDB(amazonDynamoDB);
-
         chat_id = 1234;
         modelUrl = modelUrlParser.findByName("lassie");
     }
@@ -61,7 +53,7 @@ public class AwsDynamoDBSdkTest {
     @DisplayName("테이블 생성")
     void createTable() {
         // when
-        Table table = createUserTableRequest(PK_ATTRIBUTE, SECONDARY_INDEX_ATTRIBUTE);
+        Table table = dynamoDB.createTable(createUserTableRequest(TABLE_NAME, PK_ATTRIBUTE, SECONDARY_INDEX_ATTRIBUTE));
 
         // then
         TableDescription tableDescription = table.getDescription();
@@ -135,6 +127,8 @@ public class AwsDynamoDBSdkTest {
 
         // when
         UpdateItemOutcome updateResult = table.updateItem(updateItemSpec);
+
+        // then
         Item expected = new Item().withPrimaryKey("chatId", 1234)
                 .withString("monitoredUrl", "https://www.freitag.ch/en/f41?items=showall");
 
@@ -158,7 +152,9 @@ public class AwsDynamoDBSdkTest {
         assertThat(table.getItem(key)).isNull();
     }
 
-    private Table createUserTableRequest(String keyAttributeName, String secondaryAttributeName) {
+    public static CreateTableRequest createUserTableRequest(String tableName,
+                                                            String keyAttributeName,
+                                                            String secondaryAttributeName) {
         // define attributes
         List<AttributeDefinition> attributeDefinitions = new ArrayList<>();
         attributeDefinitions.add(new AttributeDefinition(keyAttributeName, ScalarAttributeType.N));
@@ -178,14 +174,12 @@ public class AwsDynamoDBSdkTest {
                 .withProvisionedThroughput(throughput);
 
         // construct create table request
-        CreateTableRequest createTableRequest = new CreateTableRequest()
-                .withTableName(TABLE_NAME)
+        return new CreateTableRequest()
+                .withTableName(tableName)
                 .withAttributeDefinitions(attributeDefinitions)
                 .withKeySchema(keySchema)
                 .withGlobalSecondaryIndexes(globalSecondaryIndex)
                 .withProvisionedThroughput(throughput);
-
-        return dynamoDB.createTable(createTableRequest);
     }
 
     @AfterAll
