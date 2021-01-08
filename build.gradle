@@ -19,7 +19,7 @@ dependencies {
     implementation 'org.seleniumhq.selenium:selenium-java:3.141.59'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.projectreactor:reactor-spring:1.0.1.RELEASE'
-    testImplementation 'com.amazonaws:aws-java-sdk-dynamodb:1.11.931'
+    implementation 'io.github.boostchicken:spring-data-dynamodb:5.2.5'
 }
 
 test {
