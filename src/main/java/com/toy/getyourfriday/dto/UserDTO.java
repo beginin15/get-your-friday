@@ -2,17 +2,17 @@ package com.toy.getyourfriday.dto;
 
 public class UserDTO {
 
-    private Integer id;
+    private Integer chatId;
     private boolean isBot;
     private String firstName;
     private String lastName;
 
-    public Integer getId() {
-        return id;
+    public Integer getChatId() {
+        return chatId;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public void setChatId(Integer chatId) {
+        this.chatId = chatId;
     }
 
     public boolean isBot() {
@@ -42,7 +42,7 @@ public class UserDTO {
     @Override
     public String toString() {
         return "UserDTO{" +
-                "id=" + id +
+                "id=" + chatId +
                 ", isBot=" + isBot +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +

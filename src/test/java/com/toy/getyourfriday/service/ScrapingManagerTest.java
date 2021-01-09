@@ -15,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.scheduling.TaskScheduler;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -82,7 +83,7 @@ class ScrapingManagerTest {
     @Test
     @DisplayName("멀티 스레드 환경에서 동일한 스크래퍼 등록 시도")
     void registerInMultipleThreads() throws InterruptedException {
-        List<Boolean> results = new ArrayList<>();
+        List<Boolean> results = Collections.synchronizedList(new ArrayList<>());
 
         // when
         int count = 4;

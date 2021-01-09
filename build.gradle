@@ -17,10 +17,14 @@ dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     implementation 'org.seleniumhq.selenium:selenium-java:3.141.59'
-    compile 'org.springframework.boot:spring-boot-starter-webflux'
-    compile 'org.projectreactor:reactor-spring:1.0.1.RELEASE'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.projectreactor:reactor-spring:1.0.1.RELEASE'
+    implementation 'io.github.boostchicken:spring-data-dynamodb:5.2.5'
 }
 
 test {
+    exclude 'com/toy/getyourfriday/domain/WebScraperTest.class'
+    exclude 'com/toy/getyourfriday/selenium/**'
+    exclude 'com/toy/getyourfriday/service/**'
     useJUnitPlatform()
 }
