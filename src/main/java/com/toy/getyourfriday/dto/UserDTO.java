@@ -1,7 +1,10 @@
 package com.toy.getyourfriday.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class UserDTO {
 
+    @JsonProperty("id")
     private Integer chatId;
     private boolean isBot;
     private String firstName;
