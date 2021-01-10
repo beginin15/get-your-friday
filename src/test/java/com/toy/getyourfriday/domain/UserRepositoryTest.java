@@ -42,17 +42,17 @@ class UserRepositoryTest {
     @Autowired
     private CreateTableRequest userTableRequest;
 
+    private User user;
+
     @BeforeEach
     void createTable() {
         TableUtils.createTableIfNotExists(amazonDynamoDB, userTableRequest);
+        this.user = new User(1234, modelUrlParser.findByName("lassie"));
     }
 
     @Test
     @DisplayName("User 추가")
     void saveItem() {
-        // given
-        User user = new User(1234, modelUrlParser.findByName("lassie"));
-
         // when
         User savedUser = userRepository.save(user);
 
@@ -67,9 +67,7 @@ class UserRepositoryTest {
     @DisplayName("User 조회")
     void getItem() {
         // given
-        Integer id = userRepository.save(
-                new User(1234, modelUrlParser.findByName("lassie"))
-        ).getChatId();
+        Integer id = userRepository.save(user).getChatId();
 
         // when
         User retrievedUser = userRepository.findById(id)
@@ -85,9 +83,7 @@ class UserRepositoryTest {
     @DisplayName("User 수정")
     void updateItem() {
         // given
-        Integer id = userRepository.save(
-                new User(1234, modelUrlParser.findByName("lassie"))
-        ).getChatId();
+        Integer id = userRepository.save(user).getChatId();
 
         User retrievedUser = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
@@ -107,14 +103,14 @@ class UserRepositoryTest {
     @DisplayName("User 삭제")
     void deleteItem() {
         // given
-        User user = userRepository.save(new User(1234, modelUrlParser.findByName("lassie")));
+        User savedUser = userRepository.save(user);
 
         // when
-        userRepository.delete(user);
+        userRepository.delete(savedUser);
 
         // then
-        thenThrownBy(() -> userRepository.findById(user.getChatId())
-                .orElseThrow(() -> new UserNotFoundException(user.getChatId())))
+        thenThrownBy(() -> userRepository.findById(1234)
+                .orElseThrow(() -> new UserNotFoundException(1234)))
                 .isInstanceOf(UserNotFoundException.class);
     }
 
@@ -122,14 +118,14 @@ class UserRepositoryTest {
     @DisplayName("ModelUrl 조회")
     void findByModelUrl() {
         // given
-        User user = userRepository.save(new User(1234, modelUrlParser.findByName("lassie")));
+        User savedUser = userRepository.save(user);
 
         // when
-        List<User> users = userRepository.findByMonitoredUrl(user.getMonitoredUrl());
+        List<User> users = userRepository.findByMonitoredUrl(savedUser.getMonitoredUrl());
 
         // then
         assertThat(users.size()).isEqualTo(1);
-        assertThat(users).containsExactly(user);
+        assertThat(users).containsExactly(new User(1234, modelUrlParser.findByName("lassie")));
     }
 
     @AfterEach
