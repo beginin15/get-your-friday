@@ -14,7 +14,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.List;
+
 import static com.toy.getyourfriday.dynamoDB.AwsDynamoDBSdkTest.TABLE_NAME;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.api.BDDAssertions.thenThrownBy;
 
@@ -113,6 +116,20 @@ class UserRepositoryTest {
         thenThrownBy(() -> userRepository.findById(user.getChatId())
                 .orElseThrow(() -> new UserNotFoundException(user.getChatId())))
                 .isInstanceOf(UserNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("ModelUrl 조회")
+    void findByModelUrl() {
+        // given
+        User user = userRepository.save(new User(1234, modelUrlParser.findByName("lassie")));
+
+        // when
+        List<User> users = userRepository.findByMonitoredUrl(user.getMonitoredUrl());
+
+        // then
+        assertThat(users.size()).isEqualTo(1);
+        assertThat(users).containsExactly(user);
     }
 
     @AfterEach
