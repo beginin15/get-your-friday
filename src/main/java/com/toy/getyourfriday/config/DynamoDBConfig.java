@@ -8,7 +8,10 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTypeConverter;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
+import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
 import com.toy.getyourfriday.domain.ModelUrl;
+import com.toy.getyourfriday.domain.User;
 import com.toy.getyourfriday.domain.UserRepository;
 import org.socialsignin.spring.data.dynamodb.repository.config.EnableDynamoDBRepositories;
 import org.springframework.beans.factory.annotation.Value;
@@ -80,6 +83,15 @@ public class DynamoDBConfig {
     @Bean
     public DynamoDB dynamoDB() {
         return new DynamoDB(localAmazonDynamoDB());
+    }
+
+    @Bean
+    public CreateTableRequest createUserTableRequest(DynamoDBMapper dynamoDBMapper) {
+        ProvisionedThroughput provisionedThroughput = new ProvisionedThroughput(1L, 1L);
+        CreateTableRequest createTableRequest = dynamoDBMapper.generateCreateTableRequest(User.class)
+                .withProvisionedThroughput(provisionedThroughput);
+        createTableRequest.getGlobalSecondaryIndexes().forEach(v -> v.setProvisionedThroughput(provisionedThroughput));
+        return createTableRequest;
     }
 
     public static class ModelUrlConverter implements DynamoDBTypeConverter<String, ModelUrl> {

@@ -1,6 +1,8 @@
 package com.toy.getyourfriday.domain;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
 import com.amazonaws.services.dynamodbv2.util.TableUtils;
 import com.toy.getyourfriday.component.ModelUrlParser;
 import com.toy.getyourfriday.config.DynamoDBConfig;
@@ -13,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static com.toy.getyourfriday.dynamoDB.AwsDynamoDBSdkTest.TABLE_NAME;
-import static com.toy.getyourfriday.dynamoDB.AwsDynamoDBSdkTest.createUserTableRequest;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.api.BDDAssertions.thenThrownBy;
 
@@ -30,15 +31,17 @@ class UserRepositoryTest {
     private AmazonDynamoDB amazonDynamoDB;
 
     @Autowired
+    private DynamoDBMapper dynamoDBMapper;
+
+    @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private CreateTableRequest userTableRequest;
 
     @BeforeEach
     void createTable() {
-        TableUtils.createTableIfNotExists(amazonDynamoDB, createUserTableRequest(
-                TABLE_NAME,
-                "chatId",
-                "monitoredUrl")
-        );
+        TableUtils.createTableIfNotExists(amazonDynamoDB, userTableRequest);
     }
 
     @Test
