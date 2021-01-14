@@ -20,6 +20,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.projectreactor:reactor-spring:1.0.1.RELEASE'
     implementation 'io.github.boostchicken:spring-data-dynamodb:5.2.5'
+    compileOnly 'org.projectlombok:lombok'
 }
 
 test {
