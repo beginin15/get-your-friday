@@ -5,6 +5,7 @@ import com.toy.getyourfriday.component.ModelUrlParser;
 import com.toy.getyourfriday.domain.ModelUrl;
 import com.toy.getyourfriday.domain.User;
 import com.toy.getyourfriday.domain.UserRepository;
+import com.toy.getyourfriday.dto.RegisterRequest;
 import com.toy.getyourfriday.dto.RemoveRequest;
 import com.toy.getyourfriday.exception.UserNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,7 +57,11 @@ class UserServiceTest {
     @DisplayName("User 및 ModelUrl 등록")
     void register() {
         // given
-        User user = new User(chatId, modelUrl);
+        RegisterRequest registerRequest = RegisterRequest.builder()
+                .chatId(chatId)
+                .modelUrl(modelUrl)
+                .build();
+        User user = User.from(registerRequest);
 
         when(userRepository.save(user))
                 .thenReturn(user);
@@ -66,7 +71,7 @@ class UserServiceTest {
                 .thenReturn(true);
 
         // when
-        BotResponse response = userService.register(user);
+        BotResponse response = userService.register(registerRequest);
 
         // then
         verify(userRepository).save(user);
@@ -79,13 +84,17 @@ class UserServiceTest {
     @DisplayName("register 수행 시, DynamoDB Exception 발생")
     void registerWithException() {
         // given
-        User user = new User(chatId, modelUrl);
+        RegisterRequest registerRequest = RegisterRequest.builder()
+                .chatId(chatId)
+                .modelUrl(modelUrl)
+                .build();
+        User user = User.from(registerRequest);
 
         when(userRepository.save(user))
                 .thenThrow(new AmazonDynamoDBException("something"));
 
         // when, then
-        assertThatThrownBy(() -> userService.register(user))
+        assertThatThrownBy(() -> userService.register(registerRequest))
                 .isInstanceOf(AmazonDynamoDBException.class);
         verify(scrapingManager, never())
                 .containsModelUrl(modelUrl);

@@ -2,6 +2,7 @@ package com.toy.getyourfriday.service;
 
 import com.toy.getyourfriday.domain.User;
 import com.toy.getyourfriday.domain.UserRepository;
+import com.toy.getyourfriday.dto.RegisterRequest;
 import com.toy.getyourfriday.dto.RemoveRequest;
 import com.toy.getyourfriday.exception.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +20,8 @@ public class UserService {
         this.scrapingManager = scrapingManager;
     }
 
-    public BotResponse register(User user) {
-        userRepository.save(user);
+    public BotResponse register(RegisterRequest registerRequest) {
+        User user = userRepository.save(User.from(registerRequest));
         if (!scrapingManager.containsModelUrl(user.getMonitoredUrl())) {
             scrapingManager.register(user.getMonitoredUrl());
         }
