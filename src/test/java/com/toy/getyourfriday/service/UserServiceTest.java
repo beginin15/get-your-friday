@@ -46,6 +46,7 @@ class UserServiceTest {
     @Test
     @DisplayName("User 및 ModelUrl 등록")
     void register() {
+        // given
         User user = new User(chatId, modelUrl);
 
         when(userRepository.save(user))
@@ -55,8 +56,10 @@ class UserServiceTest {
         when(scrapingManager.register(modelUrl))
                 .thenReturn(true);
 
+        // when
         BotResponse response = userService.register(user);
 
+        // then
         verify(userRepository).save(user);
         verify(scrapingManager).containsModelUrl(modelUrl);
         verify(scrapingManager).register(modelUrl);
@@ -66,17 +69,18 @@ class UserServiceTest {
     @Test
     @DisplayName("DynamoDB Exception 발생")
     void register_exception() {
+        // given
         User user = new User(chatId, modelUrl);
 
         when(userRepository.save(user))
                 .thenThrow(new AmazonDynamoDBException("something"));
 
+        // when, then
+        assertThatThrownBy(() -> userService.register(user))
+                .isInstanceOf(AmazonDynamoDBException.class);
         verify(scrapingManager, never())
                 .containsModelUrl(modelUrl);
         verify(scrapingManager, never())
                 .register(modelUrl);
-
-        assertThatThrownBy(() -> userService.register(user))
-                .isInstanceOf(AmazonDynamoDBException.class);
     }
 }
