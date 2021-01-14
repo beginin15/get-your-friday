@@ -1,7 +1,8 @@
 package com.toy.getyourfriday.service;
 
 public enum BotResponse {
-    REGISTER_SUCCESS("등록 성공");
+    REGISTER_SUCCESS("등록 성공"),
+    REMOVE_SUCCESS("제거 성공");
 
     private final String message;
 
