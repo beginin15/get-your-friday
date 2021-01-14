@@ -6,7 +6,11 @@ import com.amazonaws.services.dynamodbv2.util.TableUtils;
 import com.toy.getyourfriday.component.ModelUrlParser;
 import com.toy.getyourfriday.config.DynamoDBConfig;
 import com.toy.getyourfriday.domain.User;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
