@@ -27,6 +27,8 @@ import static org.assertj.core.api.BDDAssertions.thenThrownBy;
 })
 class UserRepositoryTest {
 
+    public static final String MODEL_NAME = "lassie";
+
     @Autowired
     private ModelUrlParser modelUrlParser;
 
@@ -47,7 +49,7 @@ class UserRepositoryTest {
     @BeforeEach
     void createTable() {
         TableUtils.createTableIfNotExists(amazonDynamoDB, userTableRequest);
-        this.user = new User(1234, modelUrlParser.findByName("lassie"));
+        this.user = new User(1234, modelUrlParser.findByName(MODEL_NAME));
     }
 
     @Test
@@ -126,6 +128,34 @@ class UserRepositoryTest {
         // then
         assertThat(users.size()).isEqualTo(1);
         assertThat(users).containsExactly(new User(1234, modelUrlParser.findByName("lassie")));
+    }
+
+    @Test
+    @DisplayName("count 쿼리 - 결과 1개")
+    void countReturnOne() {
+        // given
+        User savedUser = userRepository.save(user);
+
+        // when
+        Integer count = userRepository.countByMonitoredUrl(savedUser.getMonitoredUrl());
+
+        // then
+        assertThat(count).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("count 쿼리 - 결과 2개")
+    void countReturnTwo() {
+        // given
+        User savedUserA = userRepository.save(user);
+        User savedUserB = userRepository.save(new User(5678, modelUrlParser.findByName(MODEL_NAME)));
+
+        // when
+        Integer count = userRepository.countByMonitoredUrl(savedUserA.getMonitoredUrl());
+
+        // then
+        assertThat(count).isEqualTo(2);
+        assertThat(savedUserA).isNotEqualTo(savedUserB);
     }
 
     @AfterEach

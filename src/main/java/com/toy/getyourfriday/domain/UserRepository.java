@@ -7,5 +7,7 @@ import java.util.List;
 
 @EnableScan
 public interface UserRepository extends CrudRepository<User, Integer> {
+
     List<User> findByMonitoredUrl(ModelUrl monitoredUrl);
+    Integer countByMonitoredUrl(ModelUrl monitoredUrl);
 }
