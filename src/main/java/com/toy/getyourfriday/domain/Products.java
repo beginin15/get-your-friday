@@ -13,12 +13,4 @@ public class Products {
     public List<Product> getProducts() {
         return products;
     }
-
-    public boolean isUpdated(Products latest) {
-        return products.size() < latest.size();
-    }
-
-    private int size() {
-        return products.size();
-    }
 }
