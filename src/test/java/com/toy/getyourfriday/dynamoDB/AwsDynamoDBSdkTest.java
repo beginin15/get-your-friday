@@ -24,14 +24,10 @@ import com.amazonaws.services.dynamodbv2.model.TableDescription;
 import com.toy.getyourfriday.component.ModelUrlParser;
 import com.toy.getyourfriday.config.DynamoDBConfig;
 import com.toy.getyourfriday.domain.ModelUrl;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -40,8 +36,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(classes = {
         ModelUrlParser.class,
         DynamoDBConfig.class
@@ -61,56 +55,56 @@ public class AwsDynamoDBSdkTest {
     @Autowired
     private ModelUrlParser modelUrlParser;
 
-    private Integer chat_id;
+    private Integer chatId;
     private ModelUrl modelUrl;
+    private Item item;
+    private Table table;
 
-    @BeforeAll
+    @BeforeEach
     void setUp() {
-        this.chat_id = 1234;
+        this.chatId = 1234;
         this.modelUrl = modelUrlParser.findByName("lassie");
+        this.item = new Item().withPrimaryKey(PK_ATTRIBUTE, chatId)
+                .withString(SECONDARY_INDEX_ATTRIBUTE, modelUrl.getUrl());
+        this.table = dynamoDB.createTable(createUserTableRequest(TABLE_NAME, PK_ATTRIBUTE, SECONDARY_INDEX_ATTRIBUTE));
     }
 
     @Test
-    @Order(1)
-    @DisplayName("테이블 생성")
+    @DisplayName("생성된 테이블 확인")
     void createTable() {
-        // when
-        Table table = dynamoDB.createTable(createUserTableRequest(TABLE_NAME, PK_ATTRIBUTE, SECONDARY_INDEX_ATTRIBUTE));
-
-        // then
         TableDescription tableDescription = table.getDescription();
-        assertThat(tableDescription.getTableStatus()).isEqualTo("ACTIVE");
-        assertThat(tableDescription.getTableArn()).isEqualTo("arn:aws:dynamodb:ddblocal:000000000000:table/User");
-        assertThat(tableDescription.getTableName()).isEqualTo("User");
-        assertThat(tableDescription.getAttributeDefinitions().toString()).isEqualTo(String.format(
-                "[{AttributeName: %s,AttributeType: N}, {AttributeName: %s,AttributeType: S}]",
-                PK_ATTRIBUTE,
-                SECONDARY_INDEX_ATTRIBUTE)
-        );
-        assertThat(tableDescription.getKeySchema().toString()).isEqualTo(
-                "[{AttributeName: " + PK_ATTRIBUTE + ",KeyType: HASH}]"
-        );
+        assertThat(tableDescription.getTableStatus())
+                .isEqualTo("ACTIVE");
+        assertThat(tableDescription.getTableArn())
+                .isEqualTo("arn:aws:dynamodb:ddblocal:000000000000:table/User");
+        assertThat(tableDescription.getTableName())
+                .isEqualTo("User");
+        assertThat(tableDescription.getAttributeDefinitions().toString())
+                .isEqualTo(String.format(
+                        "[{AttributeName: %s,AttributeType: N}, {AttributeName: %s,AttributeType: S}]",
+                        PK_ATTRIBUTE,
+                        SECONDARY_INDEX_ATTRIBUTE)
+                );
+        assertThat(tableDescription.getKeySchema().toString())
+                .isEqualTo("[{AttributeName: " + PK_ATTRIBUTE + ",KeyType: HASH}]");
 
-        GlobalSecondaryIndexDescription globalSecondaryIndexDescription = tableDescription.getGlobalSecondaryIndexes().get(0);
-        assertThat(globalSecondaryIndexDescription.getIndexName()).isEqualTo("monitoredUrlIndex");
-        assertThat(globalSecondaryIndexDescription.getKeySchema()).contains(
-                new KeySchemaElement("monitoredUrl", KeyType.HASH)
-        );
-        assertThat(globalSecondaryIndexDescription.getProjection().getProjectionType()).isEqualTo("KEYS_ONLY");
-        assertThat(tableDescription.getProvisionedThroughput().getReadCapacityUnits()).isEqualTo(1L);
-        assertThat(tableDescription.getProvisionedThroughput().getWriteCapacityUnits()).isEqualTo(1L);
+        GlobalSecondaryIndexDescription globalSecondaryIndexDescription =
+                tableDescription.getGlobalSecondaryIndexes().get(0);
+        assertThat(globalSecondaryIndexDescription.getIndexName())
+                .isEqualTo("monitoredUrlIndex");
+        assertThat(globalSecondaryIndexDescription.getKeySchema())
+                .contains(new KeySchemaElement("monitoredUrl", KeyType.HASH));
+        assertThat(globalSecondaryIndexDescription.getProjection().getProjectionType())
+                .isEqualTo("KEYS_ONLY");
+        assertThat(tableDescription.getProvisionedThroughput().getReadCapacityUnits())
+                .isEqualTo(1L);
+        assertThat(tableDescription.getProvisionedThroughput().getWriteCapacityUnits())
+                .isEqualTo(1L);
     }
 
     @Test
-    @Order(2)
     @DisplayName("User 추가")
     void putItem() {
-        // given
-        Table table = dynamoDB.getTable(TABLE_NAME);
-
-        Item item = new Item().withPrimaryKey(PK_ATTRIBUTE, chat_id)
-                .withString(SECONDARY_INDEX_ATTRIBUTE, modelUrl.getUrl());
-
         // when
         PutItemResult putResult = table.putItem(item).getPutItemResult();
 
@@ -119,31 +113,29 @@ public class AwsDynamoDBSdkTest {
     }
 
     @Test
-    @Order(3)
     @DisplayName("User 조회")
     void getItem() {
         // given
-        Table table = dynamoDB.getTable(TABLE_NAME);
-        PrimaryKey key = new PrimaryKey(PK_ATTRIBUTE, chat_id);
+        table.putItem(item).getPutItemResult();
 
         // when
-        Item item = table.getItem(key);
+        Item savedItem = table.getItem(new PrimaryKey(PK_ATTRIBUTE, chatId));
 
         // then
-        Item expected = new Item().withPrimaryKey("chatId", 1234)
+        Item expected = new Item().withPrimaryKey("chatId", chatId)
                 .withString("monitoredUrl", modelUrl.getUrl());
-        assertThat(item).isEqualTo(expected);
+        assertThat(savedItem).isEqualTo(expected);
     }
 
     @Test
-    @Order(4)
     @DisplayName("User 수정")
     void updateItem() {
         // given
-        Table table = dynamoDB.getTable(TABLE_NAME);
+        table.putItem(item);
+        final String updatedModelName = "hawaiifive-o";
         AttributeUpdate attributeUpdate = new AttributeUpdate(SECONDARY_INDEX_ATTRIBUTE)
-                .put(modelUrlParser.findByName("hawaiifive-o").getUrl());
-        UpdateItemSpec updateItemSpec = new UpdateItemSpec().withPrimaryKey(PK_ATTRIBUTE, chat_id)
+                .put(modelUrlParser.findByName(updatedModelName).getUrl());
+        UpdateItemSpec updateItemSpec = new UpdateItemSpec().withPrimaryKey(PK_ATTRIBUTE, chatId)
                 .withAttributeUpdate(attributeUpdate)
                 .withReturnValues(ReturnValue.ALL_NEW);
 
@@ -151,26 +143,27 @@ public class AwsDynamoDBSdkTest {
         UpdateItemOutcome updateResult = table.updateItem(updateItemSpec);
 
         // then
-        Item expected = new Item().withPrimaryKey("chatId", 1234)
-                .withString("monitoredUrl", "https://www.freitag.ch/en/f41?items=showall");
+        Item expected = new Item().withPrimaryKey("chatId", chatId)
+                .withString("monitoredUrl", modelUrlParser.findByName(updatedModelName).getUrl());
 
-        assertThat(updateResult.getUpdateItemResult().getSdkHttpMetadata().getHttpStatusCode()).isEqualTo(200);
+        assertThat(updateResult.getUpdateItemResult().getSdkHttpMetadata().getHttpStatusCode())
+                .isEqualTo(200);
         assertThat(updateResult.getItem()).isEqualTo(expected);
     }
 
     @Test
-    @Order(5)
     @DisplayName("User 삭제")
     void deleteItem() {
         // given
-        Table table = dynamoDB.getTable(TABLE_NAME);
-        PrimaryKey key = new PrimaryKey(PK_ATTRIBUTE, chat_id);
+        table.putItem(item);
+        PrimaryKey key = new PrimaryKey(PK_ATTRIBUTE, chatId);
 
         // when
         DeleteItemOutcome deleteResult = table.deleteItem(key);
 
         // then
-        assertThat(deleteResult.getDeleteItemResult().getSdkHttpMetadata().getHttpStatusCode()).isEqualTo(200);
+        assertThat(deleteResult.getDeleteItemResult().getSdkHttpMetadata().getHttpStatusCode())
+                .isEqualTo(200);
         assertThat(table.getItem(key)).isNull();
     }
 
@@ -179,8 +172,12 @@ public class AwsDynamoDBSdkTest {
                                                             String secondaryAttributeName) {
         // define attributes
         List<AttributeDefinition> attributeDefinitions = new ArrayList<>();
-        attributeDefinitions.add(new AttributeDefinition(keyAttributeName, ScalarAttributeType.N));
-        attributeDefinitions.add(new AttributeDefinition(secondaryAttributeName, ScalarAttributeType.S));
+        attributeDefinitions.add(
+                new AttributeDefinition(keyAttributeName, ScalarAttributeType.N)
+        );
+        attributeDefinitions.add(
+                new AttributeDefinition(secondaryAttributeName, ScalarAttributeType.S)
+        );
 
         // define the PK schema - "chatId"
         KeySchemaElement keySchema = new KeySchemaElement(keyAttributeName, KeyType.HASH);
@@ -204,7 +201,7 @@ public class AwsDynamoDBSdkTest {
                 .withProvisionedThroughput(throughput);
     }
 
-    @AfterAll
+    @AfterEach
     void tearDown() {
         amazonDynamoDB.deleteTable(TABLE_NAME);
     }
