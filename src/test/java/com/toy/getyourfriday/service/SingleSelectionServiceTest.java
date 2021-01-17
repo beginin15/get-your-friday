@@ -13,6 +13,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
@@ -27,16 +28,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(classes = {
-        UserService.class,
+        SingleSelectionService.class,
         ModelUrlParser.class
 })
-class UserServiceTest {
+class SingleSelectionServiceTest {
 
     @Autowired
     private ModelUrlParser modelUrlParser;
 
     @Autowired
-    private UserService userService;
+    @Qualifier(value = "singleSelectionService")
+    private ScrapingService scrapingService;
 
     @MockBean
     private UserRepository userRepository;
@@ -67,16 +69,14 @@ class UserServiceTest {
                 .thenReturn(user);
         when(scrapingManager.containsModelUrl(modelUrl))
                 .thenReturn(false);
-        when(scrapingManager.register(modelUrl))
-                .thenReturn(true);
+        doNothing().when(scrapingManager).registerIfNotExist(modelUrl);
 
         // when
-        BotResponse response = userService.register(registerRequest);
+        BotResponse response = scrapingService.register(registerRequest);
 
         // then
         verify(userRepository).save(user);
-        verify(scrapingManager).containsModelUrl(modelUrl);
-        verify(scrapingManager).register(modelUrl);
+        verify(scrapingManager).registerIfNotExist(modelUrl);
         assertThat(response).isEqualTo(BotResponse.REGISTER_SUCCESS);
     }
 
@@ -94,12 +94,12 @@ class UserServiceTest {
                 .thenThrow(new AmazonDynamoDBException("something"));
 
         // when, then
-        assertThatThrownBy(() -> userService.register(registerRequest))
+        assertThatThrownBy(() -> scrapingService.register(registerRequest))
                 .isInstanceOf(AmazonDynamoDBException.class);
         verify(scrapingManager, never())
                 .containsModelUrl(modelUrl);
         verify(scrapingManager, never())
-                .register(modelUrl);
+                .registerIfNotExist(modelUrl);
     }
 
     @Test
@@ -116,14 +116,18 @@ class UserServiceTest {
                 .thenReturn(0);
 
         // when
-        BotResponse response = userService.remove(removeRequest);
+        BotResponse response = scrapingService.remove(removeRequest);
 
         // then
         InOrder inOrder = inOrder(userRepository, scrapingManager);
-        inOrder.verify(userRepository).findById(chatId);
-        inOrder.verify(userRepository).deleteById(chatId);
-        inOrder.verify(userRepository).countByMonitoredUrl(modelUrl);
-        inOrder.verify(scrapingManager).remove(modelUrl);
+        inOrder.verify(userRepository)
+                .findById(chatId);
+        inOrder.verify(userRepository)
+                .deleteById(chatId);
+        inOrder.verify(userRepository)
+                .countByMonitoredUrl(modelUrl);
+        inOrder.verify(scrapingManager)
+                .remove(modelUrl);
         assertThat(response).isEqualTo(BotResponse.REMOVE_SUCCESS);
     }
 
@@ -141,7 +145,7 @@ class UserServiceTest {
                 .thenReturn(1);
 
         // when
-        BotResponse response = userService.remove(removeRequest);
+        BotResponse response = scrapingService.remove(removeRequest);
 
         // then
         InOrder inOrder = inOrder(userRepository, scrapingManager);
@@ -164,7 +168,7 @@ class UserServiceTest {
                 .thenThrow(UserNotFoundException.class);
 
         // when, then
-        assertThatThrownBy(() -> userService.remove(removeRequest))
+        assertThatThrownBy(() -> scrapingService.remove(removeRequest))
                 .isInstanceOf(UserNotFoundException.class);
         verify(userRepository, never())
                 .deleteById(chatId);
