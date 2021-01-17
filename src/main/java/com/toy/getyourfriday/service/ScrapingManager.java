@@ -3,20 +3,22 @@ package com.toy.getyourfriday.service;
 import com.toy.getyourfriday.component.ProductContainer;
 import com.toy.getyourfriday.domain.ModelUrl;
 import com.toy.getyourfriday.domain.WebScraper;
+import lombok.EqualsAndHashCode;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 @Service
+@EqualsAndHashCode
 public class ScrapingManager {
 
     public static final int SCHEDULE_PERIOD = 40;
@@ -34,6 +36,7 @@ public class ScrapingManager {
 
     private final Map<ModelUrl, ScrapingTask> scheduledTasks = new ConcurrentHashMap<>();
 
+    @Autowired
     public ScrapingManager(TaskScheduler taskScheduler,
                            ProductContainer productContainer,
                            ChromeOptions chromeOptions) {
@@ -42,16 +45,16 @@ public class ScrapingManager {
         this.chromeOptions = chromeOptions;
     }
 
-    public boolean register(ModelUrl modelUrl) {
-        ScrapingTask scrapingTask = makeSchedule(modelUrl);
-        Optional<ScrapingTask> returnValue = Optional.ofNullable(scheduledTasks.putIfAbsent(modelUrl, scrapingTask));
-        try {
-            checkDuplication(returnValue, scrapingTask);
-        } catch (DuplicateKeyException e) {
-            scrapingTask.cancel(true);
-            return false;
+    public void registerIfNotExist(ModelUrl modelUrl) {
+        if (!containsModelUrl(modelUrl)) {
+            register(modelUrl);
         }
-        return true;
+    }
+
+    private void register(ModelUrl modelUrl) {
+        ScrapingTask scrapingTask = makeSchedule(modelUrl);
+        Optional.ofNullable(scheduledTasks.putIfAbsent(modelUrl, scrapingTask))
+                .ifPresent(v -> cancelIfNotAbsent(v, scrapingTask));
     }
 
     private ScrapingTask makeSchedule(ModelUrl modelUrl) {
@@ -60,13 +63,10 @@ public class ScrapingManager {
         return new ScrapingTask(scheduledTask, scraper);
     }
 
-    private void checkDuplication(Optional<ScrapingTask> optional,
-                                  ScrapingTask scrapingTask) throws DuplicateKeyException {
-        optional.ifPresent(t -> {
-            if (!t.equals(scrapingTask)) {
-                throw new DuplicateKeyException();
-            }
-        });
+    private void cancelIfNotAbsent(ScrapingTask returnValue, ScrapingTask newTask) {
+        if (!returnValue.equals(newTask)) {
+            newTask.cancel(true);
+        }
     }
 
     public void remove(ModelUrl modelUrl) {
@@ -81,19 +81,6 @@ public class ScrapingManager {
     @PreDestroy
     public void destroy() {
         scheduledTasks.forEach((k, v) -> v.cancel(true));
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ScrapingManager manager = (ScrapingManager) o;
-        return scheduledTasks.equals(manager.scheduledTasks);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(scheduledTasks);
     }
 
     static public class ScrapingTask {
@@ -111,6 +98,4 @@ public class ScrapingManager {
             scraper.quitDriver();
         }
     }
-
-    private static class DuplicateKeyException extends RuntimeException {}
 }

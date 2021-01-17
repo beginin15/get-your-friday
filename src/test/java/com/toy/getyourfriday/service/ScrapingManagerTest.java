@@ -2,6 +2,7 @@ package com.toy.getyourfriday.service;
 
 import com.toy.getyourfriday.component.ModelUrlParser;
 import com.toy.getyourfriday.component.ProductContainer;
+import com.toy.getyourfriday.config.ApplicationConfig;
 import com.toy.getyourfriday.domain.ModelUrl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,16 +14,15 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.scheduling.TaskScheduler;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.IntStream;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@SpringBootTest(classes = {
+        ProductContainer.class,
+        ModelUrlParser.class
+})
+@SpringJUnitConfig(classes = ApplicationConfig.class)
 @Execution(ExecutionMode.CONCURRENT)
 class ScrapingManagerTest {
 
@@ -53,13 +53,13 @@ class ScrapingManagerTest {
     @DisplayName("스크래퍼 등록")
     void register() throws InterruptedException {
         // when
-        scrapingManager.register(parser.findByName(MODEL_NAME));
+        scrapingManager.registerIfNotExist(parser.findByName(MODEL_NAME));
 
         Thread.sleep(100_000);
 
         // then
         ProductContainer unexpected = new ProductContainer();
-        assertNotEquals(unexpected, productContainer);
+        assertThat(productContainer).isNotEqualTo(unexpected);
     }
 
     @Test
@@ -70,34 +70,14 @@ class ScrapingManagerTest {
         ModelUrl furyUrl = parser.findByName("fury");
 
         // when
-        new Thread(() -> scrapingManager.register(lassieUrl)).start();
-        new Thread(() -> scrapingManager.register(furyUrl)).start();
+        new Thread(() -> scrapingManager.registerIfNotExist(lassieUrl)).start();
+        new Thread(() -> scrapingManager.registerIfNotExist(furyUrl)).start();
 
         Thread.sleep(100_000);
 
         // then
-        assertTrue(scrapingManager.containsModelUrl(lassieUrl));
-        assertTrue(scrapingManager.containsModelUrl(furyUrl));
-    }
-
-    @Test
-    @DisplayName("멀티 스레드 환경에서 동일한 스크래퍼 등록 시도")
-    void registerInMultipleThreads() throws InterruptedException {
-        List<Boolean> results = Collections.synchronizedList(new ArrayList<>());
-
-        // when
-        int count = 4;
-        IntStream.range(0, count)
-                .mapToObj(i -> (Runnable) () -> {
-                    results.add(scrapingManager.register(parser.findByName(MODEL_NAME)));
-                })
-                .map(Thread::new)
-                .forEach(Thread::start);
-
-        Thread.sleep(30_000);
-
-        // then
-        assertThat(results).containsExactlyInAnyOrder(true, false, false, false);
+        assertThat(scrapingManager.containsModelUrl(lassieUrl)).isTrue();
+        assertThat(scrapingManager.containsModelUrl(furyUrl)).isTrue();
     }
 
     @Test
@@ -105,7 +85,7 @@ class ScrapingManagerTest {
     void remove() throws InterruptedException {
         // given
         ModelUrl modelUrl = parser.findByName(MODEL_NAME);
-        scrapingManager.register(modelUrl);
+        scrapingManager.registerIfNotExist(modelUrl);
 
         Thread.sleep(100_000);
 
@@ -114,7 +94,7 @@ class ScrapingManagerTest {
 
         // then
         ScrapingManager expected = new ScrapingManager(taskScheduler, productContainer, chromeOptions);
-        assertEquals(expected, scrapingManager);
-        assertFalse(scrapingManager.containsModelUrl(modelUrl));
+        assertThat(scrapingManager).isEqualTo(expected);
+        assertThat(scrapingManager.containsModelUrl(modelUrl)).isFalse();
     }
 }
