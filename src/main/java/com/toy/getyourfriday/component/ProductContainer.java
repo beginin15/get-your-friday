@@ -2,9 +2,9 @@ package com.toy.getyourfriday.component;
 
 import com.toy.getyourfriday.domain.ModelUrl;
 import com.toy.getyourfriday.domain.Products;
-import lombok.AllArgsConstructor;
+import com.toy.getyourfriday.service.UpdateService;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -12,17 +12,28 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-@NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode
 public class ProductContainer {
 
     private Map<ModelUrl, Products> productsMap = new ConcurrentHashMap<>();
+    private final UpdateService updateService;
 
-    public static ProductContainer of(ModelUrl modelUrl, Products products) {
+    @Autowired
+    public ProductContainer(UpdateService updateService) {
+        this.updateService = updateService;
+    }
+
+    private ProductContainer(Map<ModelUrl, Products> productsMap, UpdateService updateService) {
+        this.productsMap = productsMap;
+        this.updateService = updateService;
+    }
+
+    public static ProductContainer of(ModelUrl modelUrl,
+                                      Products products,
+                                      UpdateService updateService) {
         Map<ModelUrl, Products> map = new HashMap<>();
         map.put(modelUrl, products);
-        return new ProductContainer(map);
+        return new ProductContainer(map, updateService);
     }
 
     public void checkUpdate(ModelUrl modelUrl, Products products) {
@@ -34,9 +45,10 @@ public class ProductContainer {
     }
 
     private void updateIfChanged(ModelUrl modelUrl, Products latest) {
-        if (!productsMap.get(modelUrl).equals(latest)) {
-            // UpdateService 호출
-            productsMap.replace(modelUrl, latest);
+        Products previous = productsMap.get(modelUrl);
+        if (latest.isUpdated(previous)) {
+            updateService.update(modelUrl, latest.getUpdatedProducts(previous));
+            productsMap.remove(modelUrl, latest);
         }
     }
 }
