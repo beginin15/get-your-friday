@@ -4,82 +4,78 @@ import com.google.common.collect.ImmutableList;
 import com.toy.getyourfriday.domain.ModelUrl;
 import com.toy.getyourfriday.domain.Product;
 import com.toy.getyourfriday.domain.Products;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.HashMap;
-import java.util.Map;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-
-@SpringBootTest(classes = ModelUrlParser.class)
+@SpringBootTest(classes = {ModelUrlParser.class})
 class ProductContainerTest {
 
     private static final String MODEL_NAME = "lassie";
-    private static final Products products;
 
-    static {
-        products = new Products(ImmutableList.of(
+    @Autowired
+    private ModelUrlParser modelUrlParser;
+
+    private ModelUrl modelUrl;
+    private Products products;
+
+    @BeforeEach
+    void setUp() {
+        this.modelUrl = modelUrlParser.findByName(MODEL_NAME);
+        this.products = new Products(ImmutableList.of(
                 new Product("https://www.freitag.ch/ko/f11?productID=1143300"),
                 new Product("https://www.freitag.ch/ko/f11?productID=1135801"))
         );
     }
 
-    @Autowired
-    private ModelUrlParser modelUrlParser;
-
     @Test
     @DisplayName("최초 업데이트인 경우")
-    void checkUpdate_first() {
+    void checkUpdateWhenFirstTime() {
         // given
         ProductContainer actual = new ProductContainer();
 
         // when
-        actual.checkUpdate(modelUrlParser.findByName(MODEL_NAME), products);
+        actual.checkUpdate(modelUrl, products);
 
         // then
         ProductContainer unexpected = new ProductContainer();
-        assertNotEquals(unexpected, actual);
+        assertThat(actual).isNotEqualTo(unexpected);
     }
 
     @Test
     @DisplayName("업데이트할 내용이 없는 경우")
-    void checkUpdate_noUpdates() {
+    void checkUpdateWhenNotUpdated() {
         // given
-        ProductContainer actual = new ProductContainer();
+        ProductContainer actual = ProductContainer.of(modelUrl, products);
 
         // when
-        actual.checkUpdate(modelUrlParser.findByName(MODEL_NAME), products);
+        actual.checkUpdate(modelUrl, products);
 
         // then
-        Map<ModelUrl, Products> map = new HashMap<>();
-        map.put(modelUrlParser.findByName(MODEL_NAME), products);
-        ProductContainer expected = ProductContainer.of(map);
-
-        assertEquals(expected, actual);
+        ProductContainer expected = ProductContainer.of(modelUrl, products);
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
     @DisplayName("업데이트된 경우")
     void checkUpdate() {
         // given
-        Map<ModelUrl, Products> map = new HashMap<>();
-        map.put(modelUrlParser.findByName(MODEL_NAME), products);
-        ProductContainer actual = ProductContainer.of(map);
-
-        // when
+        ProductContainer actual = ProductContainer.of(modelUrl, products);
         Products updatedProducts = new Products(ImmutableList.of(
                 new Product("https://www.freitag.ch/ko/f11?productID=1143300"),
                 new Product("https://www.freitag.ch/ko/f11?productID=1135801"),
                 new Product("https://www.freitag.ch/ko/f11?productID=1135753"))
         );
-        actual.checkUpdate(modelUrlParser.findByName(MODEL_NAME), updatedProducts);
+
+        // when
+        actual.checkUpdate(modelUrl, updatedProducts);
 
         // then
-        ProductContainer unexpected = ProductContainer.of(map);
-        assertNotEquals(unexpected, actual);
+        ProductContainer unexpected = ProductContainer.of(modelUrl, products);
+        assertThat(actual).isNotEqualTo(unexpected);
     }
 }

@@ -1,11 +1,28 @@
 package com.toy.getyourfriday.domain;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.*;
-
-import java.util.Objects;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBAttribute;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBIndexHashKey;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTypeConverted;
+import com.toy.getyourfriday.dto.RegisterRequest;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import static com.toy.getyourfriday.config.DynamoDBConfig.ModelUrlConverter;
 
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Getter
+@Setter
+@EqualsAndHashCode
+@ToString
 @DynamoDBTable(tableName = "User")
 public class User {
 
@@ -17,53 +34,14 @@ public class User {
     @DynamoDBTypeConverted(converter = ModelUrlConverter.class)
     private ModelUrl monitoredUrl;
 
-    // used for loading item by DBMapper
-    public User() {}
-
-    public User(Integer chatId, ModelUrl monitoredUrl) {
-        this.chatId = chatId;
-        this.monitoredUrl = monitoredUrl;
-    }
-
     public User changeMonitoredUrl(ModelUrl modelUrl) {
         return new User(chatId, modelUrl);
     }
 
-    public Integer getChatId() {
-        return chatId;
-    }
-
-    public void setChatId(Integer chatId) {
-        this.chatId = chatId;
-    }
-
-    public ModelUrl getMonitoredUrl() {
-        return monitoredUrl;
-    }
-
-    public void setMonitoredUrl(ModelUrl monitoredUrl) {
-        this.monitoredUrl = monitoredUrl;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
-        return getChatId().equals(user.getChatId()) &&
-                getMonitoredUrl().equals(user.getMonitoredUrl());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getChatId(), getMonitoredUrl());
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "chatId=" + chatId +
-                ", monitoredUrl=" + monitoredUrl +
-                '}';
+    public static User from(RegisterRequest registerRequest) {
+        return User.builder()
+                .chatId(registerRequest.getChatId())
+                .monitoredUrl(registerRequest.getModelUrl())
+                .build();
     }
 }
