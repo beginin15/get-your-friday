@@ -2,9 +2,10 @@ package com.toy.getyourfriday.component;
 
 import com.toy.getyourfriday.domain.ModelUrl;
 import com.toy.getyourfriday.domain.Products;
-import lombok.AllArgsConstructor;
+import com.toy.getyourfriday.service.UpdateService;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -12,32 +13,51 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-@NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode
+@ToString
 public class ProductContainer {
 
     private Map<ModelUrl, Products> productsMap = new ConcurrentHashMap<>();
+    private final UpdateService updateService;
 
-    public static ProductContainer of(ModelUrl modelUrl, Products products) {
+    @Autowired
+    public ProductContainer(UpdateService updateService) {
+        this.updateService = updateService;
+    }
+
+    private ProductContainer(Map<ModelUrl, Products> productsMap, UpdateService updateService) {
+        this.productsMap = productsMap;
+        this.updateService = updateService;
+    }
+
+    public static ProductContainer of(ModelUrl modelUrl,
+                                      Products products,
+                                      UpdateService updateService) {
         Map<ModelUrl, Products> map = new HashMap<>();
         map.put(modelUrl, products);
-        return new ProductContainer(map);
+        return new ProductContainer(map, updateService);
     }
 
-    public void checkUpdate(ModelUrl modelUrl, Products products) {
-        if (productsMap.containsKey(modelUrl)) {
-            updateIfChanged(modelUrl, products);
+    public void updateIfChanged(ModelUrl modelUrl, Products latest) {
+        if (!productsMap.containsKey(modelUrl)) {
+            productsMap.put(modelUrl, latest);
             return;
         }
-        productsMap.put(modelUrl, products);
-    }
-
-    private void updateIfChanged(ModelUrl modelUrl, Products latest) {
-        if (!productsMap.get(modelUrl).equals(latest)) {
-            // UpdateService 호출
+        if (isChanged(modelUrl, latest)) {
             productsMap.replace(modelUrl, latest);
         }
+    }
+
+    private boolean isChanged(ModelUrl modelUrl, Products latest) {
+        Products previous = productsMap.get(modelUrl);
+        if (latest.equals(previous)) {
+            return false;
+        }
+        if (latest.isUpdated(previous)) {
+            updateService.update(modelUrl, latest.getUpdatedProducts(previous));
+            return true;
+        }
+        return true; // only sold
     }
 }
 

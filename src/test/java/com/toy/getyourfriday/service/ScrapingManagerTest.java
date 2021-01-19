@@ -13,6 +13,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -27,6 +28,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ScrapingManagerTest {
 
     public static final String MODEL_NAME = "lassie";
+
+    @MockBean
+    private UpdateService updateService;
 
     @Autowired
     private TaskScheduler taskScheduler;
@@ -58,7 +62,7 @@ class ScrapingManagerTest {
         Thread.sleep(100_000);
 
         // then
-        ProductContainer unexpected = new ProductContainer();
+        ProductContainer unexpected = new ProductContainer(updateService);
         assertThat(productContainer).isNotEqualTo(unexpected);
     }
 
