@@ -4,6 +4,7 @@ import com.toy.getyourfriday.domain.ModelUrl;
 import com.toy.getyourfriday.domain.Products;
 import com.toy.getyourfriday.service.UpdateService;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @EqualsAndHashCode
+@ToString
 public class ProductContainer {
 
     private Map<ModelUrl, Products> productsMap = new ConcurrentHashMap<>();
@@ -36,20 +38,26 @@ public class ProductContainer {
         return new ProductContainer(map, updateService);
     }
 
-    public void checkUpdate(ModelUrl modelUrl, Products products) {
-        if (productsMap.containsKey(modelUrl)) {
-            updateIfChanged(modelUrl, products);
+    public void updateIfChanged(ModelUrl modelUrl, Products latest) {
+        if (!productsMap.containsKey(modelUrl)) {
+            productsMap.put(modelUrl, latest);
             return;
         }
-        productsMap.put(modelUrl, products);
+        if (isChanged(modelUrl, latest)) {
+            productsMap.replace(modelUrl, latest);
+        }
     }
 
-    private void updateIfChanged(ModelUrl modelUrl, Products latest) {
+    private boolean isChanged(ModelUrl modelUrl, Products latest) {
         Products previous = productsMap.get(modelUrl);
+        if (latest.equals(previous)) {
+            return false;
+        }
         if (latest.isUpdated(previous)) {
             updateService.update(modelUrl, latest.getUpdatedProducts(previous));
-            productsMap.remove(modelUrl, latest);
+            return true;
         }
+        return true; // only sold
     }
 }
 

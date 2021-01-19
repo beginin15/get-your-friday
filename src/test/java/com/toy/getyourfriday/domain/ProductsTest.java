@@ -24,7 +24,7 @@ public class ProductsTest {
 
     @Test
     @DisplayName("업데이트, 판매 모두 없음")
-    void isUpdatedWhenNotUpdatedAndNotSold() {
+    void isUpdatedWhenNothing() {
         Products latest = createProductsByLinks(
                 "https://www.freitag.ch/ko/f11?productID=1143300",
                 "https://www.freitag.ch/ko/f11?productID=1135801"
@@ -33,7 +33,7 @@ public class ProductsTest {
     }
 
     @Test
-    @DisplayName("업데이트 개수와 판매 개수가 동일")
+    @DisplayName("업데이트 개수와 판매 개수가 동일 - 업데이트")
     void isUpdatedWhenTotalSame() {
         Products latest = createProductsByLinks(
                 "https://www.freitag.ch/ko/f11?productID=1143300",
@@ -43,7 +43,7 @@ public class ProductsTest {
     }
 
     @Test
-    @DisplayName("업데이트 개수가 더 많음")
+    @DisplayName("업데이트 개수가 더 많음 - 업데이트")
     void isUpdatedWhenUpdatedMore() {
         Products latest = createProductsByLinks(
                 "https://www.freitag.ch/ko/f11?productID=1143300",

@@ -35,7 +35,7 @@ public class WebScraper implements Runnable {
                 .stream()
                 .map(e -> new Product(e.getAttribute(ATTRIBUTE_NAME)))
                 .collect(collectingAndThen(toList(), Products::new));
-        productContainer.checkUpdate(modelUrl, products);
+        productContainer.updateIfChanged(modelUrl, products);
     }
 
     public void quitDriver() {
