@@ -5,8 +5,8 @@ import com.toy.getyourfriday.component.ProductContainer;
 import com.toy.getyourfriday.config.ApplicationConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -14,10 +14,11 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 @SpringJUnitConfig(ApplicationConfig.class)
-@SpringBootTest(classes = ModelUrlParser.class)
+@SpringBootTest(classes = {ModelUrlParser.class})
 class WebScraperTest {
 
     public static final String MODEL_NAME = "lassie";
@@ -34,15 +35,24 @@ class WebScraperTest {
     @Test
     @DisplayName("스케줄링에 의한 스크래핑 테스트")
     void scrapingByScheduler() throws InterruptedException {
-        WebDriver driver = new ChromeDriver();
-        WebScraper webScraper = new WebScraper(driver, urlParser.findByName(MODEL_NAME), productContainer);
+        // given
+        WebScraper webScraper = WebScraper.of(
+                new ChromeDriver(new ChromeOptions()),
+                urlParser.findByName(MODEL_NAME),
+                productContainer
+        );
 
-        PeriodicTrigger trigger = new PeriodicTrigger(10, TimeUnit.SECONDS);
-        trigger.setInitialDelay(10);
-        taskScheduler.schedule(webScraper, trigger);
+        final int period = 10;
+        final int initialDelay = 10;
+        PeriodicTrigger trigger = new PeriodicTrigger(period, TimeUnit.SECONDS);
+        trigger.setInitialDelay(initialDelay);
 
-        Thread.sleep(100000);
+        // when
+        ScheduledFuture<?> task = taskScheduler.schedule(webScraper, trigger);
 
-        driver.quit();
+        Thread.sleep(100_000);
+
+        task.cancel(true);
+        webScraper.quitDriver();
     }
 }

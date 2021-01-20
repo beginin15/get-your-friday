@@ -7,6 +7,7 @@ import com.toy.getyourfriday.domain.WebScraper;
 import com.toy.getyourfriday.service.ScrapingManager.ScrapingTask;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,11 +44,13 @@ class ScrapingTaskTest {
         // given
         PeriodicTrigger trigger = new PeriodicTrigger(10, TimeUnit.SECONDS);
         WebScraper scraper = WebScraper.of(
-                new ChromeOptions(), modelUrlParser.findByName(MODEL_NAME), productContainer
+                new ChromeDriver(new ChromeOptions()),
+                modelUrlParser.findByName(MODEL_NAME),
+                productContainer
         );
         ScheduledFuture<?> scheduledFuture = taskScheduler.schedule(scraper, trigger);
         ScrapingTask task = new ScrapingTask(scheduledFuture, scraper);
-        Thread.sleep(3000);
+        Thread.sleep(3_000);
 
         // when
         task.cancel(true);

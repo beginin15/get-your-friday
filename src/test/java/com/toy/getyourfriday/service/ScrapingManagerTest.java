@@ -17,6 +17,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import java.util.Arrays;
+import java.util.stream.IntStream;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(classes = {
@@ -41,23 +44,23 @@ class ScrapingManagerTest {
     @Autowired
     private ModelUrlParser parser;
 
-    private ScrapingManager scrapingManager;
+    private ScrapingManager actual;
 
     @BeforeEach
     void setUp() {
-        scrapingManager = new ScrapingManager(taskScheduler, productContainer, chromeOptions);
+        actual = new ScrapingManager(taskScheduler, productContainer, chromeOptions);
     }
 
     @AfterEach
     void after() {
-        scrapingManager.destroy();
+        actual.destroy();
     }
 
     @Test
     @DisplayName("스크래퍼 등록")
     void register() throws InterruptedException {
         // when
-        scrapingManager.registerIfNotExist(parser.findByName(MODEL_NAME));
+        actual.registerIfNotExist(parser.findByName(MODEL_NAME));
 
         Thread.sleep(100_000);
 
@@ -74,14 +77,36 @@ class ScrapingManagerTest {
         ModelUrl furyUrl = parser.findByName("fury");
 
         // when
-        new Thread(() -> scrapingManager.registerIfNotExist(lassieUrl)).start();
-        new Thread(() -> scrapingManager.registerIfNotExist(furyUrl)).start();
+        new Thread(() -> actual.registerIfNotExist(lassieUrl)).start();
+        new Thread(() -> actual.registerIfNotExist(furyUrl)).start();
 
         Thread.sleep(100_000);
 
         // then
-        assertThat(scrapingManager.containsModelUrl(lassieUrl)).isTrue();
-        assertThat(scrapingManager.containsModelUrl(furyUrl)).isTrue();
+        assertThat(actual.containsModelUrl(lassieUrl)).isTrue();
+        assertThat(actual.containsModelUrl(furyUrl)).isTrue();
+    }
+
+    @Test
+    @DisplayName("멀티 스레드에서 동일한 스크래퍼 등록 시도")
+    void registerByMultipleThreads() throws InterruptedException {
+        // given
+        ModelUrl modelUrl = parser.findByName("lassie");
+        int count = 4;
+
+        // when
+        IntStream.range(0, count)
+                .mapToObj(i -> (Runnable) () -> actual.registerIfNotExist(modelUrl))
+                .map(Thread::new)
+                .forEach(Thread::start);
+
+        ScrapingManager expected = new ScrapingManager(taskScheduler, productContainer, chromeOptions);
+        expected.registerIfNotExist(modelUrl);
+        Thread.sleep(30_000);
+
+        // then
+        assertThat(actual).isEqualTo(expected);
+        closeResource(expected);
     }
 
     @Test
@@ -89,16 +114,20 @@ class ScrapingManagerTest {
     void remove() throws InterruptedException {
         // given
         ModelUrl modelUrl = parser.findByName(MODEL_NAME);
-        scrapingManager.registerIfNotExist(modelUrl);
+        actual.registerIfNotExist(modelUrl);
 
         Thread.sleep(100_000);
 
         // when
-        scrapingManager.remove(modelUrl);
+        actual.remove(modelUrl);
 
         // then
         ScrapingManager expected = new ScrapingManager(taskScheduler, productContainer, chromeOptions);
-        assertThat(scrapingManager).isEqualTo(expected);
-        assertThat(scrapingManager.containsModelUrl(modelUrl)).isFalse();
+        assertThat(actual).isEqualTo(expected);
+        assertThat(actual.containsModelUrl(modelUrl)).isFalse();
+    }
+
+    private void closeResource(ScrapingManager... managers) {
+        Arrays.stream(managers).forEach(ScrapingManager::destroy);
     }
 }

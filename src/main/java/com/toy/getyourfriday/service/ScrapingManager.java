@@ -3,7 +3,8 @@ package com.toy.getyourfriday.service;
 import com.toy.getyourfriday.component.ProductContainer;
 import com.toy.getyourfriday.domain.ModelUrl;
 import com.toy.getyourfriday.domain.WebScraper;
-import lombok.EqualsAndHashCode;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
@@ -12,13 +13,13 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 @Service
-@EqualsAndHashCode
 public class ScrapingManager {
 
     public static final int SCHEDULE_PERIOD = 40;
@@ -53,20 +54,28 @@ public class ScrapingManager {
 
     private void register(ModelUrl modelUrl) {
         ScrapingTask scrapingTask = makeSchedule(modelUrl);
-        Optional.ofNullable(scheduledTasks.putIfAbsent(modelUrl, scrapingTask))
-                .ifPresent(v -> cancelIfNotAbsent(v, scrapingTask));
+        if (putIfAbsent(modelUrl, scrapingTask)) {
+            scrapingTask.start(new ChromeDriver(chromeOptions));
+            return;
+        }
+        scrapingTask.cancel(true);
     }
 
     private ScrapingTask makeSchedule(ModelUrl modelUrl) {
-        WebScraper scraper = WebScraper.of(chromeOptions, modelUrl, productContainer);
+        WebScraper scraper = WebScraper.of(
+                modelUrl,
+                productContainer
+        );
         ScheduledFuture<?> scheduledTask = taskScheduler.schedule(scraper, trigger);
         return new ScrapingTask(scheduledTask, scraper);
     }
 
-    private void cancelIfNotAbsent(ScrapingTask returnValue, ScrapingTask newTask) {
-        if (!returnValue.equals(newTask)) {
-            newTask.cancel(true);
+    private boolean putIfAbsent(ModelUrl modelUrl, ScrapingTask scrapingTask) {
+        Optional<ScrapingTask> optional = Optional.ofNullable(scheduledTasks.putIfAbsent(modelUrl, scrapingTask));
+        if (optional.isPresent()) {
+            return !optional.map(v -> v.equals(scrapingTask)).get();
         }
+        return true;
     }
 
     public void remove(ModelUrl modelUrl) {
@@ -83,6 +92,22 @@ public class ScrapingManager {
         scheduledTasks.forEach((k, v) -> v.cancel(true));
     }
 
+    /*
+        동등성 판단 기준에는 scheduledTasks만 포함된다.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ScrapingManager manager = (ScrapingManager) o;
+        return scheduledTasks.equals(manager.scheduledTasks);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(scheduledTasks);
+    }
+
     static public class ScrapingTask {
 
         private final ScheduledFuture<?> task;
@@ -93,9 +118,31 @@ public class ScrapingManager {
             this.scraper = scraper;
         }
 
+        public void start(WebDriver webDriver) {
+            scraper.setDriver(webDriver);
+        }
+
         public void cancel(boolean mayInterruptIfRunning) {
             task.cancel(mayInterruptIfRunning);
             scraper.quitDriver();
+        }
+
+        /*
+            동등성 판단 기준에는 WebScraper만 포함된다.
+            ScheduledFuture는 TaskScheduler에 의해 생성되므로 비교 대상에 포함되기 힘들다.
+         */
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ScrapingTask that = (ScrapingTask) o;
+            return scraper.equals(that.scraper);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(scraper);
         }
     }
 }
