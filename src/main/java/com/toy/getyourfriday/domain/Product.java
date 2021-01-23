@@ -12,4 +12,5 @@ import lombok.ToString;
 public class Product {
 
     private final String link;
+    private final String thumbnail;
 }

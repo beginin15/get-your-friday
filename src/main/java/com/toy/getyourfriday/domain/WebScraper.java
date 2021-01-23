@@ -4,6 +4,7 @@ import com.toy.getyourfriday.component.ProductContainer;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
+import org.openqa.selenium.WebElement;
 
 import java.util.Objects;
 
@@ -12,8 +13,10 @@ import static java.util.stream.Collectors.toList;
 
 public class WebScraper implements Runnable {
 
-    public static final By CSS_SELECTOR = By.cssSelector("ul.products-list > li > a");
-    public static final String ATTRIBUTE_NAME = "href";
+    public static final By A_TAG_CSS_SELECTOR = By.cssSelector("ul.products-list > li > a");
+    public static final By IMG_CSS_SELECTOR = By.cssSelector("img");
+    public static final String A_TAG_ATTRIBUTE_NAME = "href";
+    public static final String IMG_TAG_ATTRIBUTE_NAME = "src";
 
     private WebDriver driver;
     private final ModelUrl modelUrl;
@@ -43,15 +46,20 @@ public class WebScraper implements Runnable {
         try {
             if (driver != null) {
                 driver.get(modelUrl.getUrl());
-                Products products = driver.findElements(CSS_SELECTOR)
+                Products products = driver.findElements(A_TAG_CSS_SELECTOR)
                         .stream()
-                        .map(e -> new Product(e.getAttribute(ATTRIBUTE_NAME)))
+                        .map(this::mapToProduct)
                         .collect(collectingAndThen(toList(), Products::new));
                 productContainer.updateIfChanged(modelUrl, products);
             }
         } catch (WebDriverException e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    private Product mapToProduct(WebElement element) {
+        return new Product(element.getAttribute(A_TAG_ATTRIBUTE_NAME),
+                element.findElement(IMG_CSS_SELECTOR).getAttribute(IMG_TAG_ATTRIBUTE_NAME));
     }
 
     public void setDriver(WebDriver driver) {

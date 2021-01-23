@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.toy.getyourfriday.domain.WebScraper.A_TAG_ATTRIBUTE_NAME;
+import static com.toy.getyourfriday.domain.WebScraper.IMG_CSS_SELECTOR;
+import static com.toy.getyourfriday.domain.WebScraper.IMG_TAG_ATTRIBUTE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -87,6 +90,11 @@ public class WebDriverTest {
         // when
         driver.get(url);
         List<WebElement> elements = driver.findElements(By.cssSelector("ul.products-list > li > a"));
+        elements.forEach(e -> {
+            System.out.println(String.format("a href: %s, img src: %s",
+                    e.getAttribute(A_TAG_ATTRIBUTE_NAME),
+                    e.findElement(IMG_CSS_SELECTOR).getAttribute(IMG_TAG_ATTRIBUTE_NAME)));
+        });
 
         // then
         System.out.println(elements.size());

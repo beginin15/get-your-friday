@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static java.util.stream.Collectors.collectingAndThen;
@@ -17,6 +18,10 @@ import static java.util.stream.Collectors.toList;
 public class Products {
 
     private final List<Product> products;
+
+    public static Products of(Product... products) {
+        return new Products(Arrays.asList(products.clone()));
+    }
 
     public boolean isUpdated(Products previous) {
         if (this.products.size() > previous.size()) { // update more

@@ -1,6 +1,7 @@
 package com.toy.getyourfriday.component;
 
 import com.toy.getyourfriday.domain.ModelUrl;
+import com.toy.getyourfriday.domain.Product;
 import com.toy.getyourfriday.domain.Products;
 import com.toy.getyourfriday.service.UpdateService;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-import static com.toy.getyourfriday.domain.ProductsTest.createProductsByLinks;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
@@ -29,21 +29,27 @@ class ProductContainerTest {
 
     private ModelUrl modelUrl;
     private Products products;
+    private Product existingA;
+    private Product existingB;
+    private Product updated;
     private ProductContainer actual;
 
     @BeforeEach
     void setUp() {
         this.modelUrl = modelUrlParser.findByName(MODEL_NAME);
-        this.products = createProductsByLinks(
-                "https://www.freitag.ch/ko/f11?productID=1143300",
-                "https://www.freitag.ch/ko/f11?productID=1135801"
-        );
+        this.existingA = new Product("https://www.freitag.ch/ko/f11?productID=1143300",
+                "https://freitag.rokka.io/neo_square_thumbnail/abc/0000-1.jpg");
+        this.existingB = new Product("https://www.freitag.ch/ko/f11?productID=1135801",
+                "https://freitag.rokka.io/neo_square_thumbnail/abc/0000-2.jpg");
+        this.updated = new Product("https://www.freitag.ch/ko/f11?productID=1135822",
+                "https://freitag.rokka.io/neo_square_thumbnail/abc/0000-3.jpg");
+        this.products = Products.of(existingA, existingB);
         this.actual = ProductContainer.of(modelUrl, products, updateService);
     }
 
     @Test
     @DisplayName("최초 업데이트인 경우")
-    void checkUpdateAtFirstTime() {
+    void updateIfChangedAtFirstTime() {
         // given
         ProductContainer actual = new ProductContainer(updateService);
 
@@ -58,7 +64,7 @@ class ProductContainerTest {
 
     @Test
     @DisplayName("업데이트, 판매 모두 없음")
-    void checkUpdateWhenNotUpdatedAndNotSold() {
+    void updateIfChangedWhenNotUpdatedAndNotSold() {
         // when
         actual.updateIfChanged(modelUrl, products);
 
@@ -70,15 +76,10 @@ class ProductContainerTest {
 
     @Test
     @DisplayName("업데이트 개수와 판매 개수가 동일 - 업데이트")
-    void checkUpdateWhenTotalSame() {
+    void updateIfChangedWhenTotalSame() {
         // given
-        Products latestProducts = createProductsByLinks(
-                "https://www.freitag.ch/ko/f11?productID=1143300",
-                "https://www.freitag.ch/ko/f11?productID=1135753"
-        );
-        Products updatedProducts = createProductsByLinks(
-                "https://www.freitag.ch/ko/f11?productID=1135753"
-        );
+        Products latestProducts = Products.of(existingA, updated);
+        Products updatedProducts = Products.of(updated);
 
         doNothing().when(updateService).update(modelUrl, updatedProducts);
 
@@ -93,16 +94,10 @@ class ProductContainerTest {
 
     @Test
     @DisplayName("업데이트 개수가 더 많음 - 업데이트")
-    void checkUpdateWhenUpdatedMore() {
+    void updateIfChangedWhenUpdatedMore() {
         // given
-        Products latestProducts = createProductsByLinks(
-                "https://www.freitag.ch/ko/f11?productID=1143300",
-                "https://www.freitag.ch/ko/f11?productID=1135801",
-                "https://www.freitag.ch/ko/f11?productID=1135753"
-        );
-        Products updatedProducts = createProductsByLinks(
-                "https://www.freitag.ch/ko/f11?productID=1135753"
-        );
+        Products latestProducts = Products.of(existingA, existingB, updated);
+        Products updatedProducts = Products.of(updated);
 
         doNothing().when(updateService).update(modelUrl, updatedProducts);
 
@@ -117,11 +112,9 @@ class ProductContainerTest {
 
     @Test
     @DisplayName("판매만 발생")
-    void checkUpdateWhenOnlySold() {
+    void updateIfChangedWhenOnlySold() {
         // given
-        Products latestProducts = createProductsByLinks(
-                "https://www.freitag.ch/ko/f11?productID=1143300"
-        );
+        Products latestProducts = Products.of(existingA);
 
         // when
         actual.updateIfChanged(modelUrl, latestProducts);
@@ -137,9 +130,7 @@ class ProductContainerTest {
     void checkUpdatedWhenSoldMore() {
         // given
         Products latestProducts, updatedProducts;
-        latestProducts = updatedProducts = createProductsByLinks(
-                "https://www.freitag.ch/ko/f11?productID=1143322"
-        );
+        latestProducts = updatedProducts = Products.of(updated);
 
         // when
         actual.updateIfChanged(modelUrl, latestProducts);
