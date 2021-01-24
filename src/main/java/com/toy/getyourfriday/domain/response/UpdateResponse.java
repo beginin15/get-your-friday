@@ -15,7 +15,7 @@ public class UpdateResponse extends WebClientResponse {
 
     private final Product updateProduct;
 
-    private UpdateResponse(Integer chatId, Product updateProduct) {
+    public UpdateResponse(Integer chatId, Product updateProduct) {
         super(chatId);
         this.updateProduct = updateProduct;
     }

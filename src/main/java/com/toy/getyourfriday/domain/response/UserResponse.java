@@ -14,7 +14,7 @@ public class UserResponse extends WebClientResponse {
 
     private final String message;
 
-    private UserResponse(Integer chatId, String message) {
+    public UserResponse(Integer chatId, String message) {
         super(chatId);
         this.message = message;
     }
