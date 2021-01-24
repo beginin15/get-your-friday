@@ -1,10 +1,11 @@
-package com.toy.getyourfriday.domain;
+package com.toy.getyourfriday.domain.user;
 
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBAttribute;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBIndexHashKey;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTypeConverted;
+import com.toy.getyourfriday.domain.scraping.ModelUrl;
 import com.toy.getyourfriday.dto.RegisterRequest;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

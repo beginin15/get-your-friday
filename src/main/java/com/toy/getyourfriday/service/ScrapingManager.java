@@ -1,8 +1,8 @@
 package com.toy.getyourfriday.service;
 
 import com.toy.getyourfriday.component.ProductContainer;
-import com.toy.getyourfriday.domain.ModelUrl;
-import com.toy.getyourfriday.domain.WebScraper;
+import com.toy.getyourfriday.domain.scraping.ModelUrl;
+import com.toy.getyourfriday.domain.scraping.WebScraper;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;

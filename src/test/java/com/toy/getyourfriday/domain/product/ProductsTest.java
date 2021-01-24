@@ -1,4 +1,4 @@
-package com.toy.getyourfriday.domain;
+package com.toy.getyourfriday.domain.product;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

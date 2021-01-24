@@ -1,6 +1,6 @@
 package com.toy.getyourfriday.component;
 
-import com.toy.getyourfriday.domain.ModelUrl;
+import com.toy.getyourfriday.domain.scraping.ModelUrl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
