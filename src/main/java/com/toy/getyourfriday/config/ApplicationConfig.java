@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 @EnableScheduling
@@ -15,6 +16,9 @@ public class ApplicationConfig {
 
     @Value("${thread.times}")
     private int threadTimes;
+
+    @Value("${bot.token}")
+    private String botToken;
 
     @Bean
     public ChromeOptions chromeOptions() {
@@ -34,5 +38,10 @@ public class ApplicationConfig {
         ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
         threadPoolTaskScheduler.setPoolSize(Runtime.getRuntime().availableProcessors() * threadTimes);
         return threadPoolTaskScheduler;
+    }
+
+    @Bean
+    public WebClient webClient(WebClient.Builder webClientBuilder) {
+        return webClientBuilder.baseUrl(String.format("https://api.telegram.org/bot%s/sendMessage", botToken)).build();
     }
 }
