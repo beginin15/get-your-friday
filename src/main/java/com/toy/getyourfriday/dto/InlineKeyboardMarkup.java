@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.toy.getyourfriday.dto.InlineKeyboardMarkup.InlineKeyboards.PurchaseLinkButton;
@@ -22,18 +23,18 @@ public class InlineKeyboardMarkup {
     private InlineKeyboards buttons;
 
     public static InlineKeyboardMarkup from(Product product) {
-        List<List<PurchaseLinkButton>> inlineKeyboards = Arrays.asList(product)
+        List<List<PurchaseLinkButton>> buttons = Arrays.asList(product)
                 .stream()
                 .map(p -> new PurchaseLinkButton("GET", p.getLink(), null))
                 .collect(collectingAndThen(toList(), ImmutableList::of));
-        return fromButtonList(inlineKeyboards);
+        return fromButtonList(buttons);
     }
 
     public static InlineKeyboardMarkup from(List<String> modelNames) {
-        List<List<PurchaseLinkButton>> inlineKeyboards = modelNames.stream()
-                .map(m -> new PurchaseLinkButton(m, null, "/" + m))
-                .collect(collectingAndThen(toList(), ImmutableList::of));
-        return fromButtonList(inlineKeyboards);
+        List<List<PurchaseLinkButton>> buttons = modelNames.stream()
+                .map(m -> Collections.singletonList(new PurchaseLinkButton(m, null, "/" + m)))
+                .collect(toList());
+        return fromButtonList(buttons);
     }
 
     private static InlineKeyboardMarkup fromButtonList(List<List<PurchaseLinkButton>> inlineKeyboards) {
@@ -55,7 +56,7 @@ public class InlineKeyboardMarkup {
             private String text;
             @JsonProperty
             private String url;
-            @JsonProperty("switch_inline_query")
+            @JsonProperty("switch_inline_query_current_chat")
             private String inlineQuery;
 
             public PurchaseLinkButton(String text, String url, String inlineQuery) {
