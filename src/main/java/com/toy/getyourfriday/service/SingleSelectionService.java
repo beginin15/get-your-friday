@@ -1,8 +1,10 @@
 package com.toy.getyourfriday.service;
 
-import com.toy.getyourfriday.domain.ModelUrl;
-import com.toy.getyourfriday.domain.User;
-import com.toy.getyourfriday.domain.UserRepository;
+import com.toy.getyourfriday.domain.response.UserResponse;
+import com.toy.getyourfriday.domain.response.WebClientResponse;
+import com.toy.getyourfriday.domain.scraping.ModelUrl;
+import com.toy.getyourfriday.domain.user.User;
+import com.toy.getyourfriday.domain.user.UserRepository;
 import com.toy.getyourfriday.dto.RegisterRequest;
 import com.toy.getyourfriday.dto.RemoveRequest;
 import com.toy.getyourfriday.exception.UserNotFoundException;
@@ -22,19 +24,19 @@ public class SingleSelectionService implements ScrapingService {
     }
 
     @Override
-    public BotResponse register(RegisterRequest registerRequest) {
+    public WebClientResponse register(RegisterRequest registerRequest) {
         User user = userRepository.save(User.from(registerRequest));
         scrapingManager.registerIfNotExist(user.getMonitoredUrl());
-        return BotResponse.REGISTER_SUCCESS;
+        return UserResponse.of(user, "등록 완료");
     }
 
     @Override
-    public BotResponse remove(RemoveRequest removeRequest) {
+    public WebClientResponse remove(RemoveRequest removeRequest) {
         User user = userRepository.findById(removeRequest.getChatId())
                 .orElseThrow(() -> new UserNotFoundException(removeRequest.getChatId()));
         userRepository.deleteById(user.getChatId());
         removeTaskIfNotMonitored(user.getMonitoredUrl());
-        return BotResponse.REMOVE_SUCCESS;
+        return UserResponse.of(user, "제거 완료");
     }
 
     private void removeTaskIfNotMonitored(ModelUrl modelUrl) {
