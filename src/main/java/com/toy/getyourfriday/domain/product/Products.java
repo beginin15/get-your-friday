@@ -1,5 +1,7 @@
-package com.toy.getyourfriday.domain;
+package com.toy.getyourfriday.domain.product;
 
+import com.toy.getyourfriday.domain.response.UpdateResponse;
+import com.toy.getyourfriday.domain.user.User;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -7,6 +9,7 @@ import lombok.ToString;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
@@ -46,5 +49,11 @@ public class Products {
 
     private boolean containsProduct(Product product) {
         return products.contains(product);
+    }
+
+    public List<UpdateResponse> responses(User user) {
+        return products.stream()
+                .map(p -> UpdateResponse.of(user, p))
+                .collect(Collectors.toList());
     }
 }
