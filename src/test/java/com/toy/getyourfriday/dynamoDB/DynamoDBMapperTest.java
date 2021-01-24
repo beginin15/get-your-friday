@@ -5,7 +5,7 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.util.TableUtils;
 import com.toy.getyourfriday.component.ModelUrlParser;
 import com.toy.getyourfriday.config.DynamoDBConfig;
-import com.toy.getyourfriday.domain.User;
+import com.toy.getyourfriday.domain.user.User;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;

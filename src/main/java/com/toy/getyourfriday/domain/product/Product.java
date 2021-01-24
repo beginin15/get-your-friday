@@ -1,4 +1,4 @@
-package com.toy.getyourfriday.domain;
+package com.toy.getyourfriday.domain.product;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;

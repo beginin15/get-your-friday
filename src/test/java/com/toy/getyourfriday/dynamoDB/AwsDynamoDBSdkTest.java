@@ -23,7 +23,7 @@ import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
 import com.amazonaws.services.dynamodbv2.model.TableDescription;
 import com.toy.getyourfriday.component.ModelUrlParser;
 import com.toy.getyourfriday.config.DynamoDBConfig;
-import com.toy.getyourfriday.domain.ModelUrl;
+import com.toy.getyourfriday.domain.scraping.ModelUrl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.toy.getyourfriday.domain.WebScraper.A_TAG_ATTRIBUTE_NAME;
-import static com.toy.getyourfriday.domain.WebScraper.IMG_CSS_SELECTOR;
-import static com.toy.getyourfriday.domain.WebScraper.IMG_TAG_ATTRIBUTE_NAME;
+import static com.toy.getyourfriday.domain.scraping.WebScraper.A_TAG_ATTRIBUTE_NAME;
+import static com.toy.getyourfriday.domain.scraping.WebScraper.IMG_CSS_SELECTOR;
+import static com.toy.getyourfriday.domain.scraping.WebScraper.IMG_TAG_ATTRIBUTE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

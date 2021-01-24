@@ -1,5 +1,6 @@
-package com.toy.getyourfriday.domain;
+package com.toy.getyourfriday.domain.user;
 
+import com.toy.getyourfriday.domain.scraping.ModelUrl;
 import org.socialsignin.spring.data.dynamodb.repository.EnableScan;
 import org.springframework.data.repository.CrudRepository;
 

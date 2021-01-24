@@ -1,8 +1,8 @@
 package com.toy.getyourfriday.component;
 
-import com.toy.getyourfriday.domain.ModelUrl;
-import com.toy.getyourfriday.domain.Product;
-import com.toy.getyourfriday.domain.Products;
+import com.toy.getyourfriday.domain.product.Product;
+import com.toy.getyourfriday.domain.product.Products;
+import com.toy.getyourfriday.domain.scraping.ModelUrl;
 import com.toy.getyourfriday.service.UpdateService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

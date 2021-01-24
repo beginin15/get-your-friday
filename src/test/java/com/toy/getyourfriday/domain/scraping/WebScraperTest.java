@@ -1,4 +1,4 @@
-package com.toy.getyourfriday.domain;
+package com.toy.getyourfriday.domain.scraping;
 
 import com.toy.getyourfriday.component.ModelUrlParser;
 import com.toy.getyourfriday.component.ProductContainer;
