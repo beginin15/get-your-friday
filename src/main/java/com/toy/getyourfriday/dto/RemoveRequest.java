@@ -1,6 +1,7 @@
 package com.toy.getyourfriday.dto;
 
-import com.toy.getyourfriday.domain.ModelUrl;
+import com.toy.getyourfriday.domain.scraping.ModelUrl;
+import com.toy.getyourfriday.domain.user.User;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -22,5 +23,9 @@ public class RemoveRequest {
         return RemoveRequest.builder()
                 .chatId(updateDTO.getMessage().getFrom().getChatId())
                 .build();
+    }
+
+    public User toUser() {
+        return new User(chatId, modelUrl);
     }
 }
