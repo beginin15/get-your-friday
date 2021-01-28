@@ -14,12 +14,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 @EnableScheduling
 public class ApplicationConfig {
 
-    @Value("${thread.times}")
-    private int threadTimes;
-
-    @Value("${bot.token}")
-    private String botToken;
-
     @Bean
     public ChromeOptions chromeOptions() {
         // 프록시 설정
@@ -34,14 +28,16 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public TaskScheduler taskScheduler() {
+    public TaskScheduler taskScheduler(@Value("${thread.times}") int threadTimes) {
         ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
         threadPoolTaskScheduler.setPoolSize(Runtime.getRuntime().availableProcessors() * threadTimes);
         return threadPoolTaskScheduler;
     }
 
     @Bean
-    public WebClient webClient(WebClient.Builder webClientBuilder) {
-        return webClientBuilder.baseUrl(String.format("https://api.telegram.org/bot%s/sendMessage", botToken)).build();
+    public WebClient webClient(@Value("${bot.token}") String botToken) {
+        return WebClient.builder()
+                .baseUrl(String.format("https://api.telegram.org/bot%s/sendMessage", botToken))
+                .build();
     }
 }
