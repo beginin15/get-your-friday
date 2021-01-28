@@ -3,7 +3,6 @@ package com.toy.getyourfriday.domain.response;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.toy.getyourfriday.component.ModelUrlParser;
 import com.toy.getyourfriday.domain.user.User;
-import com.toy.getyourfriday.service.BotMessageManager;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -12,15 +11,20 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest(classes = {
         ModelUrlParser.class
@@ -33,7 +37,6 @@ class UserResponseTest {
     private ModelUrlParser modelUrlParser;
 
     private WebClient webClient;
-    private BotMessageManager messageManager;
     private ObjectMapper objectMapper;
     private User user;
 
@@ -48,7 +51,6 @@ class UserResponseTest {
         this.webClient = WebClient.builder()
                 .baseUrl("http://localhost:" + mockWebServer.getPort())
                 .build();
-        this.messageManager = new BotMessageManager(webClient);
         this.objectMapper = new ObjectMapper();
         this.user = new User(0001, modelUrlParser.findByName("lassie"));
     }
@@ -64,12 +66,15 @@ class UserResponseTest {
     @Test
     @DisplayName("사용자(모델) 등록 및 제거 메세지 전송")
     void send() throws InterruptedException, UnsupportedEncodingException {
-        // given
-        String message = "등록 완료";
+        // mocking
         mockWebServer.enqueue(new MockResponse().setResponseCode(200));
 
+        // given
+        String message = "등록 완료";
+        UserResponse response = UserResponse.of(user, message);
+
         // when
-        messageManager.send(UserResponse.of(user, message));
+        response.send(webClient).block();
 
         // then
         RecordedRequest request = mockWebServer.takeRequest();
@@ -77,6 +82,24 @@ class UserResponseTest {
 
         assertThat(request.getMethod()).isEqualTo("GET");
         assertThat(URLDecoder.decode(request.getPath(), "UTF-8")).isEqualTo(path);
+    }
+
+    @ParameterizedTest()
+    @ValueSource(ints = {400, 500})
+    @DisplayName("4XX or 5XX 예러")
+    void sendWithHttpStatusCodeException(int statusCode) {
+        // mocking
+        mockWebServer.enqueue(new MockResponse().setResponseCode(statusCode));
+
+        // given
+        String message = "등록 완료";
+        UserResponse response = UserResponse.of(user, message);
+
+        // when
+        Mono<?> result = response.send(webClient);
+
+        // then
+        assertThatThrownBy(result::block).isInstanceOf(HttpStatusCodeException.class);
     }
 
     @AfterAll
