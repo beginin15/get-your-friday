@@ -32,7 +32,7 @@ class UpdateServiceTest {
     private UserRepository userRepository;
 
     @MockBean
-    private BotMessageManager messageHandler;
+    private BotMessageManager messageManager;
 
     @Autowired
     private ModelUrlParser modelUrlParser;
@@ -82,11 +82,11 @@ class UpdateServiceTest {
     }
 
     private void mockingUpdateResponseList(List<UpdateResponse> responses) {
-        responses.forEach(r -> doNothing().when(messageHandler).send(r));
+        responses.forEach(r -> doNothing().when(messageManager).send(r));
     }
 
     private void verifyUpdateResponseList(List<UpdateResponse> responses) {
-        responses.forEach(r -> verify(messageHandler).send(r));
+        responses.forEach(r -> verify(messageManager).send(r));
     }
 
     public static List<User> createUserList(User...users) {

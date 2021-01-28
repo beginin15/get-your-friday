@@ -2,9 +2,11 @@ package com.toy.getyourfriday.service;
 
 import com.amazonaws.services.dynamodbv2.model.AmazonDynamoDBException;
 import com.toy.getyourfriday.component.ModelUrlParser;
-import com.toy.getyourfriday.domain.ModelUrl;
-import com.toy.getyourfriday.domain.User;
-import com.toy.getyourfriday.domain.UserRepository;
+import com.toy.getyourfriday.domain.response.UserResponse;
+import com.toy.getyourfriday.domain.response.WebClientResponse;
+import com.toy.getyourfriday.domain.scraping.ModelUrl;
+import com.toy.getyourfriday.domain.user.User;
+import com.toy.getyourfriday.domain.user.UserRepository;
 import com.toy.getyourfriday.dto.RegisterRequest;
 import com.toy.getyourfriday.dto.RemoveRequest;
 import com.toy.getyourfriday.exception.UserNotFoundException;
@@ -72,12 +74,12 @@ class SingleSelectionServiceTest {
         doNothing().when(scrapingManager).registerIfNotExist(modelUrl);
 
         // when
-        BotResponse response = scrapingService.register(registerRequest);
+        WebClientResponse response = scrapingService.register(registerRequest);
 
         // then
         verify(userRepository).save(user);
         verify(scrapingManager).registerIfNotExist(modelUrl);
-        assertThat(response).isEqualTo(BotResponse.REGISTER_SUCCESS);
+        assertThat(response).isEqualTo(UserResponse.of(user, "등록 완료"));
     }
 
     @Test
@@ -116,7 +118,7 @@ class SingleSelectionServiceTest {
                 .thenReturn(0);
 
         // when
-        BotResponse response = scrapingService.remove(removeRequest);
+        WebClientResponse response = scrapingService.remove(removeRequest);
 
         // then
         InOrder inOrder = inOrder(userRepository, scrapingManager);
@@ -128,7 +130,7 @@ class SingleSelectionServiceTest {
                 .countByMonitoredUrl(modelUrl);
         inOrder.verify(scrapingManager)
                 .remove(modelUrl);
-        assertThat(response).isEqualTo(BotResponse.REMOVE_SUCCESS);
+        assertThat(response).isEqualTo(UserResponse.of(removeRequest.toUser(), "제거 완"));
     }
 
     @Test
@@ -145,14 +147,17 @@ class SingleSelectionServiceTest {
                 .thenReturn(1);
 
         // when
-        BotResponse response = scrapingService.remove(removeRequest);
+        WebClientResponse response = scrapingService.remove(removeRequest);
 
         // then
         InOrder inOrder = inOrder(userRepository, scrapingManager);
-        inOrder.verify(userRepository).findById(chatId);
-        inOrder.verify(userRepository).deleteById(chatId);
-        inOrder.verify(userRepository).countByMonitoredUrl(modelUrl);
-        assertThat(response).isEqualTo(BotResponse.REMOVE_SUCCESS);
+        inOrder.verify(userRepository)
+                .findById(chatId);
+        inOrder.verify(userRepository)
+                .deleteById(chatId);
+        inOrder.verify(userRepository)
+                .countByMonitoredUrl(modelUrl);
+        assertThat(response).isEqualTo(UserResponse.of(removeRequest.toUser(), "제거 완료"));
     }
 
     @Test

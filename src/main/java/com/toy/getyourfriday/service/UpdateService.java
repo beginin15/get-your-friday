@@ -10,18 +10,18 @@ import org.springframework.stereotype.Service;
 public class UpdateService {
 
     private final UserRepository userRepository;
-    private final BotMessageManager messageHandler;
+    private final BotMessageManager messageManager;
 
     @Autowired
     public UpdateService(UserRepository userRepository, BotMessageManager messageManager) {
         this.userRepository = userRepository;
-        this.messageHandler = messageManager;
+        this.messageManager = messageManager;
     }
 
     public void update(ModelUrl modelUrl, Products updatedProducts) {
         userRepository.findByMonitoredUrl(modelUrl)
                 .stream()
                 .map(updatedProducts::responses)
-                .forEach(responses -> responses.forEach(messageHandler::send));
+                .forEach(responses -> responses.forEach(messageManager::send));
     }
 }

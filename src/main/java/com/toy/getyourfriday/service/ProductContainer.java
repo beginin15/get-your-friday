@@ -1,18 +1,17 @@
-package com.toy.getyourfriday.component;
+package com.toy.getyourfriday.service;
 
 import com.toy.getyourfriday.domain.product.Products;
 import com.toy.getyourfriday.domain.scraping.ModelUrl;
-import com.toy.getyourfriday.service.UpdateService;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Component
+@Service
 @EqualsAndHashCode
 @ToString
 public class ProductContainer {
