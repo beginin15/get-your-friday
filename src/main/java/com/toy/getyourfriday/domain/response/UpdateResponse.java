@@ -4,8 +4,10 @@ import com.toy.getyourfriday.domain.product.Product;
 import com.toy.getyourfriday.domain.user.User;
 import com.toy.getyourfriday.dto.InlineKeyboardMarkup;
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriBuilder;
+import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.util.Objects;
@@ -25,13 +27,13 @@ public class UpdateResponse extends WebClientResponse {
     }
 
     @Override
-    public void send(WebClient webClient) {
-        webClient.post()
+    public Mono<?> send(WebClient webClient) {
+        return webClient.post()
                 .uri(this::buildUri)
                 .bodyValue(InlineKeyboardMarkup.from(updateProduct))
                 .retrieve()
-                .bodyToMono(InlineKeyboardMarkup.class)
-                .subscribe();
+                .onStatus(HttpStatus::isError, WebClientResponse::mapToHttpStatusCodeException)
+                .bodyToMono(InlineKeyboardMarkup.class);
     }
 
     @Override
