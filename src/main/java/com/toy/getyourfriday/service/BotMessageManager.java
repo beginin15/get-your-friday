@@ -16,6 +16,7 @@ public class BotMessageManager {
     }
 
     public void send(WebClientResponse response) {
-        response.send(webClient);
+        response.send(webClient)
+                .subscribe(System.out::println, System.out::println);
     }
 }
