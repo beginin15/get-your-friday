@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-@Service("messageHandler")
+@Service("messageManager")
 public class BotMessageManager {
 
     private final WebClient webClient;
