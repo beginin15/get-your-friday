@@ -1,7 +1,6 @@
 package com.toy.getyourfriday.service;
 
 import com.toy.getyourfriday.component.ModelUrlParser;
-import com.toy.getyourfriday.component.ProductContainer;
 import com.toy.getyourfriday.config.ApplicationConfig;
 import com.toy.getyourfriday.domain.scraping.WebScraper;
 import com.toy.getyourfriday.service.ScrapingManager.ScrapingTask;

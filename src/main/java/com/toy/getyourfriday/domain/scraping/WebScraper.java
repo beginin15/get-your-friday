@@ -1,8 +1,8 @@
 package com.toy.getyourfriday.domain.scraping;
 
-import com.toy.getyourfriday.component.ProductContainer;
 import com.toy.getyourfriday.domain.product.Product;
 import com.toy.getyourfriday.domain.product.Products;
+import com.toy.getyourfriday.service.ProductContainer;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
