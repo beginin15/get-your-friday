@@ -1,4 +1,4 @@
-package com.toy.getyourfriday.domain.response;
+package com.toy.getyourfriday.response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.toy.getyourfriday.component.ModelUrlParser;

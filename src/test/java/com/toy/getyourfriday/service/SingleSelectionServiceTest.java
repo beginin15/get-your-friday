@@ -2,14 +2,14 @@ package com.toy.getyourfriday.service;
 
 import com.amazonaws.services.dynamodbv2.model.AmazonDynamoDBException;
 import com.toy.getyourfriday.component.ModelUrlParser;
-import com.toy.getyourfriday.domain.response.UserResponse;
-import com.toy.getyourfriday.domain.response.WebClientResponse;
 import com.toy.getyourfriday.domain.scraping.ModelUrl;
 import com.toy.getyourfriday.domain.user.User;
 import com.toy.getyourfriday.domain.user.UserRepository;
 import com.toy.getyourfriday.dto.RegisterRequest;
 import com.toy.getyourfriday.dto.RemoveRequest;
 import com.toy.getyourfriday.exception.UserNotFoundException;
+import com.toy.getyourfriday.response.UserResponse;
+import com.toy.getyourfriday.response.WebClientResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
