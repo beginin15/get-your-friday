@@ -1,9 +1,8 @@
-package com.toy.getyourfriday.domain.response;
+package com.toy.getyourfriday.response;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.toy.getyourfriday.component.ModelUrlParser;
-import com.toy.getyourfriday.domain.product.Product;
 import com.toy.getyourfriday.domain.user.User;
 import com.toy.getyourfriday.dto.InlineKeyboardMarkup;
 import okhttp3.mockwebserver.MockResponse;
@@ -23,6 +22,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -30,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @SpringBootTest(classes = {
         ModelUrlParser.class
 })
-class UpdateResponseTest {
+class ModelsResponseTest {
 
     private static MockWebServer mockWebServer;
 
@@ -40,7 +43,7 @@ class UpdateResponseTest {
     private WebClient webClient;
     private ObjectMapper objectMapper;
     private User user;
-    private Product product;
+    private List<String> modelNames;
 
     @BeforeAll
     static void beforeAll() throws IOException {
@@ -55,38 +58,35 @@ class UpdateResponseTest {
                 .build();
         this.objectMapper = new ObjectMapper();
         this.user = new User(0001, modelUrlParser.findByName("lassie"));
-        this.product = new Product("https://www.freitag.ch/ko/f11?productID=1143270",
-                "https://freitag.rokka.io/neo_square_thumbnail/abc/0000-1.jpg");
+        this.modelNames = modelUrlParser.getAllModelNames();
     }
 
     @Test
     @DisplayName("정적 팩토리 메소드")
     void of() {
-        UpdateResponse actual = UpdateResponse.of(user, product);
-        assertThat(actual).isEqualTo(new UpdateResponse(0001, product));
-        assertThat(actual).isNotEqualTo(new UpdateResponse(0002, product));
+        ModelsResponse actual = ModelsResponse.of(1234, Arrays.asList("test1", "test2"));
+        assertThat(actual).isEqualTo(new ModelsResponse(1234, Arrays.asList("test1", "test2")));
     }
 
     @Test
-    @DisplayName("업데이트 메세지 전송송")
-    void send() throws InterruptedException, JsonProcessingException {
+    @DisplayName("요청 메세지 형식")
+    void send() throws InterruptedException, JsonProcessingException, UnsupportedEncodingException {
         // mocking
         mockWebServer.enqueue(new MockResponse().setResponseCode(200));
 
         // given
-        UpdateResponse response = UpdateResponse.of(user, product);
+        ModelsResponse response = ModelsResponse.of(user.getChatId(), modelNames);
 
         // when
         response.send(webClient).block();
 
         // then
         RecordedRequest request = mockWebServer.takeRequest();
-        String path = String.format("/?chat_id=%d&text=%s",
-                user.getChatId(), "https://freitag.rokka.io/neo_square_thumbnail/abc/0000-1.jpg");
-        String body = objectMapper.writeValueAsString(InlineKeyboardMarkup.from(product));
+        String body = objectMapper.writeValueAsString(InlineKeyboardMarkup.from(modelNames));
+        String path = String.format("/?chat_id=%d&text=%s", user.getChatId(), ModelsResponse.MESSAGE);
 
         assertThat(request.getMethod()).isEqualTo("POST");
-        assertThat(request.getPath()).isEqualTo(path);
+        assertThat(URLDecoder.decode(request.getPath(), "UTF-8")).isEqualTo(path);
         assertThat(request.getBody().readUtf8()).isEqualTo(body);
     }
 
@@ -98,7 +98,7 @@ class UpdateResponseTest {
         mockWebServer.enqueue(new MockResponse().setResponseCode(statusCode));
 
         // given
-        UpdateResponse response = UpdateResponse.of(user, product);
+        ModelsResponse response = ModelsResponse.of(user.getChatId(), modelNames);
 
         // when
         Mono<?> result = response.send(webClient);

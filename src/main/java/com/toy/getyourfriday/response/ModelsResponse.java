@@ -1,4 +1,4 @@
-package com.toy.getyourfriday.domain.response;
+package com.toy.getyourfriday.response;
 
 import com.toy.getyourfriday.dto.InlineKeyboardMarkup;
 import com.toy.getyourfriday.dto.UpdateDTO;

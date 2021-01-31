@@ -1,6 +1,6 @@
 package com.toy.getyourfriday.service;
 
-import com.toy.getyourfriday.domain.response.WebClientResponse;
+import com.toy.getyourfriday.response.WebClientResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;

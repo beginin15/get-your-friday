@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class ScrapingManager {
 
-    public static final int SCHEDULE_PERIOD = 40;
+    public static final int SCHEDULE_PERIOD = 60;
     public static final int INITIAL_DELAY = 10;
     private static final PeriodicTrigger trigger;
 

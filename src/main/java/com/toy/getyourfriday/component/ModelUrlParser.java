@@ -20,7 +20,7 @@ public class ModelUrlParser {
     private Map<String, ModelUrl> BY_NAME;
 
     public ModelUrl findByName(String name) {
-        return BY_NAME.get(name);
+        return BY_NAME.get(name.toLowerCase());
     }
 
     public List<String> getAllModelNames() {

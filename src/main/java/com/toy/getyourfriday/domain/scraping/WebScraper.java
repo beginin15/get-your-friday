@@ -54,8 +54,10 @@ public class WebScraper implements Runnable {
                         .collect(collectingAndThen(toList(), Products::new));
                 productContainer.updateIfChanged(modelUrl, products);
             }
-        } catch (WebDriverException e) {
+        } catch (WebDriverException | NoClassDefFoundError e) {
             System.out.println(e.getMessage());
+        } catch (ExceptionInInitializerError e) {
+            System.out.println("브라우저 강제 종료");
         }
     }
 

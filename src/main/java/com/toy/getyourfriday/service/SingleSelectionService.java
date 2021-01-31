@@ -1,17 +1,18 @@
 package com.toy.getyourfriday.service;
 
-import com.toy.getyourfriday.domain.response.UserResponse;
-import com.toy.getyourfriday.domain.response.WebClientResponse;
 import com.toy.getyourfriday.domain.scraping.ModelUrl;
 import com.toy.getyourfriday.domain.user.User;
 import com.toy.getyourfriday.domain.user.UserRepository;
 import com.toy.getyourfriday.dto.RegisterRequest;
 import com.toy.getyourfriday.dto.RemoveRequest;
 import com.toy.getyourfriday.exception.UserNotFoundException;
+import com.toy.getyourfriday.response.UserResponse;
+import com.toy.getyourfriday.response.WebClientResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
-@Service
+@Service @Primary
 public class SingleSelectionService implements ScrapingService {
 
     private final UserRepository userRepository;

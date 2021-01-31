@@ -1,7 +1,7 @@
 package com.toy.getyourfriday.domain.product;
 
-import com.toy.getyourfriday.domain.response.UpdateResponse;
 import com.toy.getyourfriday.domain.user.User;
+import com.toy.getyourfriday.response.UpdateResponse;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
