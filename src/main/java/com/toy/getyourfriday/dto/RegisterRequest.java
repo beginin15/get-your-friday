@@ -17,4 +17,11 @@ public class RegisterRequest {
                 .modelUrl(modelUrl)
                 .build();
     }
+
+    public static RegisterRequest of(Integer chatId, ModelUrl modelUrl) {
+        return RegisterRequest.builder()
+                .chatId(chatId)
+                .modelUrl(modelUrl)
+                .build();
+    }
 }
