@@ -13,7 +13,6 @@ import com.toy.getyourfriday.response.WebClientResponse;
 import com.toy.getyourfriday.service.BotMessageManager;
 import com.toy.getyourfriday.service.ScrapingService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,9 +21,6 @@ import java.util.Optional;
 
 @RestController
 public class WebhookController {
-
-    @Value("${bot.token}")
-    private String token;
 
     private final ModelUrlParser modelUrlParser;
     private final ScrapingService scrapingService;
