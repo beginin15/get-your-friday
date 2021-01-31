@@ -11,9 +11,9 @@ public class RegisterRequest {
     private final Integer chatId;
     private final ModelUrl modelUrl;
 
-    public static RegisterRequest of(UpdateDTO update, ModelUrl modelUrl) {
+    public static RegisterRequest of(UpdateDTO updateDTO, ModelUrl modelUrl) {
         return RegisterRequest.builder()
-                .chatId(update.getMessage().getFrom().getChatId())
+                .chatId(updateDTO.getMessage().getFrom().getChatId())
                 .modelUrl(modelUrl)
                 .build();
     }

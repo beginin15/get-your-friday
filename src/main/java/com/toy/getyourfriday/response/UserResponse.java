@@ -2,6 +2,7 @@ package com.toy.getyourfriday.response;
 
 import com.toy.getyourfriday.domain.user.User;
 import com.toy.getyourfriday.dto.InlineKeyboardMarkup;
+import com.toy.getyourfriday.dto.UpdateDTO;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -23,6 +24,10 @@ public class UserResponse extends WebClientResponse {
 
     public static UserResponse of(User user, String message) {
         return new UserResponse(user.getChatId(), message);
+    }
+
+    public static UserResponse of(UpdateDTO updateDTO, String message) {
+        return new UserResponse(updateDTO.getMessage().getFrom().getChatId(), message);
     }
 
     @Override
