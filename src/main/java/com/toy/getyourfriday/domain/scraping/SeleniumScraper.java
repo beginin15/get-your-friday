@@ -7,6 +7,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -22,38 +24,18 @@ public class SeleniumScraper implements WebScraper {
     public static final String IMG_TAG_ATTRIBUTE_NAME = "src";
 
     private WebDriver driver;
+    private final ChromeOptions options;
     private final ModelUrl modelUrl;
     private final ProductContainer productContainer;
 
-    private SeleniumScraper(WebDriver driver, ModelUrl url, ProductContainer productContainer) {
-        this.driver = driver;
-        this.modelUrl = url;
-        this.productContainer = productContainer;
-    }
-
-    private SeleniumScraper(ModelUrl modelUrl, ProductContainer productContainer) {
+    private SeleniumScraper(ChromeOptions options, ModelUrl modelUrl, ProductContainer productContainer) {
+        this.options = options;
         this.modelUrl = modelUrl;
         this.productContainer = productContainer;
     }
 
-    public static SeleniumScraper of(ModelUrl modelUrl, ProductContainer productContainer) {
-        return new SeleniumScraper(modelUrl, productContainer);
-    }
-
-    public static SeleniumScraper of(WebDriver webDriver, ModelUrl modelUrl, ProductContainer productContainer) {
-        return new SeleniumScraper(webDriver, modelUrl, productContainer);
-    }
-
-    @Override
-    public Optional<Products> scrape() {
-        if (driver == null)
-            return Optional.empty();
-
-        driver.get(modelUrl.getUrl());
-        return Optional.ofNullable(driver.findElements(A_TAG_CSS_SELECTOR)
-                .stream()
-                .map(this::mapToProduct)
-                .collect(collectingAndThen(toList(), Products::new)));
+    public static SeleniumScraper of(ChromeOptions options, ModelUrl modelUrl, ProductContainer productContainer) {
+        return new SeleniumScraper(options, modelUrl, productContainer);
     }
 
     @Override
@@ -67,13 +49,28 @@ public class SeleniumScraper implements WebScraper {
         }
     }
 
+    @Override
+    public Optional<Products> scrape() throws WebDriverException, NoClassDefFoundError, ExceptionInInitializerError {
+        if (driver == null) {
+            return Optional.empty();
+        }
+        driver.get(modelUrl.getUrl());
+        return Optional.ofNullable(driver.findElements(A_TAG_CSS_SELECTOR)
+                .stream()
+                .map(this::mapToProduct)
+                .collect(collectingAndThen(toList(), Products::new)));
+    }
+
     private Product mapToProduct(WebElement element) {
         return new Product(element.getAttribute(A_TAG_ATTRIBUTE_NAME),
                 element.findElement(IMG_CSS_SELECTOR).getAttribute(IMG_TAG_ATTRIBUTE_NAME));
     }
 
-    public void setDriver(WebDriver driver) {
-        this.driver = driver;
+    @Override
+    public void start() {
+        // WebDriver 인스턴스 생성할 때 리소스를 많이 사용하므로
+        // 외부에서 생성 준비를 마쳤을 때 해당 메소드를 호출하여 비로소 인스턴스를 생성한다.
+        this.driver = new ChromeDriver(options);
     }
 
     @Override

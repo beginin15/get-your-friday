@@ -7,5 +7,6 @@ import java.util.Optional;
 public interface WebScraper extends Runnable {
 
     Optional<Products> scrape();
+    void start();
     void quit();
 }
