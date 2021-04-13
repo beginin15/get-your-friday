@@ -130,7 +130,7 @@ class SingleSelectionServiceTest {
                 .countByMonitoredUrl(modelUrl);
         inOrder.verify(scrapingManager)
                 .remove(modelUrl);
-        assertThat(response).isEqualTo(UserResponse.of(removeRequest.toUser(), "제거 완"));
+        assertThat(response).isEqualTo(UserResponse.of(removeRequest.toUser(), "제거 완료"));
     }
 
     @Test
